@@ -46,14 +46,14 @@ def index():
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
-    team_a = request.form.get("team_a")
-    team_b = request.form.get("team_b")
+    team_a_name = request.form.get("team_a")
+    team_b_name = request.form.get("team_b")
     home_team = request.form.get("home_team")
 
-    if not team_a or not team_b:
+    if not team_a_name or not team_b_name:
         return "Please select both teams.", 400
 
-    if team_a == team_b:
+    if team_a_name == team_b_name:
         return "Please choose two different teams.", 400
 
     try: 
