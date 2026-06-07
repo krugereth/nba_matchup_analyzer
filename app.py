@@ -1,4 +1,9 @@
 from flask import Flask, render_template, request
+from dotenv import load_dotenv
+
+from services.nba_api import get_team_lookup, build_team_summary, compare_recent_form
+
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -17,7 +22,6 @@ NBA_TEAMS = [
     "Indiana Pacers",
     "Los Angeles Clippers",
     "Los Angeles Lakers",
-    "Atlanta Dream",
     "Memphis Grizzlies",
     "Miami Heat",
     "Milwaukee Bucks",
@@ -52,12 +56,17 @@ def analyze():
     if team_a == team_b:
         return "Please choose two different teams.", 400
 
-    return {
-        "team_a": team_a,
-        "team_b": team_b,
-        "home_team": home_team if home_team else "Not selected",
-        "message": "Step 1 works, connect to real nba data"
-    }
+    try: 
+        team_lookup = get_team_lookup()
+        team_a_summary = build_team_summary(team_a_name, team_lookup)
+        team_b_summary = build_team_summary(team_b_name, team_lookup)
+        matchup = compare_recent_form(team_a_summary, team_b_summary, home_team)
+
+        return render_template("result.html", matchup=matchup)
+    
+    except Exception as e: 
+        return f"Error loading matchup data: {e}", 500
+        
 
 if __name__ == "__main__":
     app.run(debug=True)
