@@ -1,3 +1,5 @@
+import requests
+
 from flask import Flask, render_template, request
 from dotenv import load_dotenv
 
@@ -67,8 +69,42 @@ def analyze():
 
         return render_template("result.html", matchup=matchup)
     
-    except Exception as e: 
-        return f"Error loading matchup data: {e}", 500
+    except requests.exceptions.HTTPError as e:
+        status_code = e.response.status_code if e.response is not None else 500
+
+        if status_code == 401:
+            return render_template(
+                "error.html",
+                message="The NBA API key is missing, invalid, or does not have access to this endpoint.",
+                suggestion="Check your .env file and make sure BALLDONTLIE_API_KEY is correct."
+            ), 401
+
+        if status_code == 429:
+            return render_template(
+                "error.html",
+                message="The NBA API rate limit was reached.",
+                suggestion="Wait about a minute, then try again. The app now caches repeated team lookups to reduce this issue."
+            ), 429
+
+        return render_template(
+            "error.html",
+            message=f"NBA API request failed with status code {status_code}.",
+            suggestion="Try again later or choose a different matchup."
+        ), 500
+
+    except ValueError as e:
+        return render_template(
+            "error.html",
+            message=str(e),
+            suggestion="Go back and try a different matchup."
+        ), 400
+
+    except Exception as e:
+        return render_template(
+            "error.html",
+            message="An unexpected error occurred while analyzing the matchup.",
+            suggestion=str(e)
+        ), 500
         
 
 if __name__ == "__main__":

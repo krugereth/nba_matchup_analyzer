@@ -1,5 +1,6 @@
 import os
 from datetime import date, timedelta
+from functools import lru_cache
 
 import requests
 
@@ -12,7 +13,7 @@ def get_headers():
         raise RuntimeError("BALLDONTLIE_API_KEY is missing from .env")
     return {"Authorization": api_key}
 
-
+@lru_cache(maxsize=1)
 def get_team_lookup():
     response = requests.get(
         f"{BASE_URL}/teams",
@@ -24,7 +25,7 @@ def get_team_lookup():
     teams = response.json().get("data", [])
     return {team["full_name"]: team["id"] for team in teams}
 
-
+@lru_cache(maxsize=60)
 def get_recent_games_for_team(team_id, limit=10):
     today = date.today()
     start_date = today - timedelta(days=300)
