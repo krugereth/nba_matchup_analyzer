@@ -2,6 +2,8 @@ from flask import Flask, render_template, request
 from dotenv import load_dotenv
 
 from services.nba_api import get_team_lookup, build_team_summary, compare_recent_form
+from utils.predictor import build_matchup_result
+
 
 load_dotenv()
 
@@ -60,7 +62,8 @@ def analyze():
         team_lookup = get_team_lookup()
         team_a_summary = build_team_summary(team_a_name, team_lookup)
         team_b_summary = build_team_summary(team_b_name, team_lookup)
-        matchup = compare_recent_form(team_a_summary, team_b_summary, home_team)
+
+        matchup = build_matchup_result(team_a_summary, team_b_summary, home_team)
 
         return render_template("result.html", matchup=matchup)
     

@@ -29,6 +29,14 @@
             {% endfor %}
         </select>
 
+        <label for="home_team">Home Team</label>
+        <select name="home_team" id="home_team">
+            <option value="">No selection</option>
+            {% for team in teams %}
+            <option value="{{ team }}">{{ team }}</option>
+            {% endfor %}
+        </select>
+
         <button type="submit"> Analyze matchup</button>
 
 

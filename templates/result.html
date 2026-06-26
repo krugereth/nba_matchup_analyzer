@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Matchup Results{% endblock %}
+
+{% block content %}
+    <h1>Matchup Results</h1>
+
+    <div class="card">
+        <h2>{{ matchup.team_a.name }} vs {{ matchup.team_b.name }}</h2>
+        <p><strong>Matchup winner:</strong> {{ matchup.winner }}</p>
+        <p><strong>Confidence:</strong> {{ matchup.confidence }}</p>
+        <p><strong>Score difference:</strong> {{ matchup.score_difference }}</p>
+
+        {% if matchup.home_team %}
+            <p><strong>Home team:</strong> {{ matchup.home_team }}</p>
+        {% endif %}
+
+        <p>{{ matchup.explanation }}</p>
+    </div>
+
+    <div class="card">
+        <h3>{{ matchup.team_a.name }}</h3>
+        <p>Last {{ matchup.team_a.games_used }} games: {{ matchup.team_a.wins }}-{{ matchup.team_a.losses }}</p>
+        <p>Avg points scored: {{ matchup.team_a.avg_points_for }}</p>
+        <p>Avg points allowed: {{ matchup.team_a.avg_points_against }}</p>
+        <p>Point differential: {{ matchup.team_a.point_diff }}</p>
+        <p><strong>Matchup score:</strong> {{ matchup.team_a_score }}</p>
+    </div>
+
+    <div class="card">
+        <h3>{{ matchup.team_b.name }}</h3>
+        <p>Last {{ matchup.team_b.games_used }} games: {{ matchup.team_b.wins }}-{{ matchup.team_b.losses }}</p>
+        <p>Avg points scored: {{ matchup.team_b.avg_points_for }}</p>
+        <p>Avg points allowed: {{ matchup.team_b.avg_points_against }}</p>
+        <p>Point differential: {{ matchup.team_b.point_diff }}</p>
+        <p><strong>Matchup score:</strong> {{ matchup.team_b_score }}</p>
+    </div>
+
+    <a href="/" class="back-link">Back</a>
+{% endblock %}
