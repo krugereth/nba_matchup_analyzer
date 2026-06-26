@@ -71,3 +71,159 @@ button:hover {
 .back-link:hover {
     background: #475569;
 }
+
+.prediction-card,
+.team-card,
+.comparison-card {
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.eyebrow {
+    color: #93c5fd;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 13px;
+    font-weight: bold;
+    margin: 0 0 8px;
+}
+
+.prediction-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 24px 0;
+}
+
+.label {
+    color: #94a3b8;
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+.prediction-summary h3 {
+    margin: 0;
+    color: #f8fafc;
+}
+
+.confidence-badge {
+    display: inline-block;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-weight: bold;
+}
+
+.confidence-badge.low {
+    background: #334155;
+    color: #e2e8f0;
+}
+
+.confidence-badge.medium {
+    background: #854d0e;
+    color: #fef3c7;
+}
+
+.confidence-badge.high {
+    background: #166534;
+    color: #dcfce7;
+}
+
+.home-note {
+    color: #cbd5e1;
+}
+
+.explanation {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #e2e8f0;
+}
+
+.team-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.team-card h3 {
+    margin-top: 0;
+}
+
+.record {
+    font-size: 28px;
+    font-weight: bold;
+    margin: 8px 0 20px;
+}
+
+.record span {
+    display: block;
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: normal;
+    margin-top: 4px;
+}
+
+.stat-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.stat-list li {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #1f2937;
+    padding: 12px 0;
+}
+
+.stat-list li:last-child {
+    border-bottom: none;
+}
+
+.stat-list span {
+    color: #cbd5e1;
+}
+
+.stat-list strong {
+    color: #f8fafc;
+}
+
+.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+}
+
+.comparison-table th,
+.comparison-table td {
+    border-bottom: 1px solid #1f2937;
+    padding: 14px;
+    text-align: left;
+}
+
+.comparison-table th {
+    color: #93c5fd;
+    font-size: 14px;
+}
+
+.comparison-table td {
+    color: #e2e8f0;
+}
+
+@media (max-width: 700px) {
+    .prediction-summary,
+    .team-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .comparison-table {
+        font-size: 14px;
+    }
+
+    .comparison-table th,
+    .comparison-table td {
+        padding: 10px;
+    }
+}
