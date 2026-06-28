@@ -1,47 +1,63 @@
 {% extends "base.html" %}
 
-{% block title %}NBA MATCHUP ANALYZER{% endblock %}
+{% block title %}NBA Matchup Analyzer{% endblock %}
 
 {% block content %}
-    <h1> NBA MATCHUP ANALYZER</h1>
-    <p class="subtitle">
-        Pick two NBA teams and get a matchup winner prediction based on recent game performance
-    </p>
+    <section class="hero">
+        <p class="eyebrow">Team comparison tool</p>
+        <h1>Matchup Matrix</h1>
+        <p class="subtitle">
+            Compare two NBA teams using recent performance, scoring trends, and defensive numbers. API is provided by BALLDONTLIE free tier.
+        </p>
+    </section>
 
-    
-    <form action="/analyze" method="POST" class="card">
+    <section class="tabs">
+        <span class="tab active">Matchup Stats</span>
+        <span class="tab">Recent Form</span>
+        <span class="tab">Team Edge</span>
+    </section>
 
-        <!-- First team option-->
-        <label for="team_a"> Team A</label>
-        <select name="team_a" id="team_a" required>
-            <option value=""> Select Team A</option>
-            {% for team in teams %}
-            <option value="{{ team }}"> {{ team }}</option>
-            {% endfor %}
-        </select>
+    <section class="compare-panel">
+        <form action="/analyze" method="POST" class="matchup-form">
+            <div class="form-column">
+                <label for="team_a">Team A</label>
+                <select name="team_a" id="team_a" required>
+                    <option value="">Select Team A</option>
+                    {% for team in teams %}
+                        <option value="{{ team }}">{{ team }}</option>
+                    {% endfor %}
+                </select>
+            </div>
 
-        <!-- Second team option-->
-        <label for="team_b"> Team B</label>
-        <select name="team_b" id="team_b" required>
-            <option value=""> Select Team B</option>
-            {% for team in teams %}
-            <option value="{{ team }}"> {{ team }}</option>
-            {% endfor %}
-        </select>
+            <div class="versus-circle">VS</div>
 
-        <label for="home_team">Home Team</label>
-        <select name="home_team" id="home_team">
-            <option value="">No selection</option>
-            {% for team in teams %}
-            <option value="{{ team }}">{{ team }}</option>
-            {% endfor %}
-        </select>
+            <div class="form-column">
+                <label for="team_b">Team B</label>
+                <select name="team_b" id="team_b" required>
+                    <option value="">Select Team B</option>
+                    {% for team in teams %}
+                        <option value="{{ team }}">{{ team }}</option>
+                    {% endfor %}
+                </select>
+            </div>
 
-        <button type="submit"> Analyze matchup</button>
+            <div class="form-column full-width">
+                <label for="home_team">Home Team</label>
+                <select name="home_team" id="home_team">
+                    <option value="">No home team selected</option>
+                    {% for team in teams %}
+                        <option value="{{ team }}">{{ team }}</option>
+                    {% endfor %}
+                </select>
+                <p class="helper-text">Optional: Select the team with home court advantage for better analysis.</p>
+            </div>
 
-    </form>
-    
-    <a href="/history" class="back-link">View matchup history</a>
+            <button type="submit" class="primary-button">Analyze Matchup</button>
+        </form>
+    </section>
 
-    {% endblock %}
+    <section class="quick-actions">
+        <a href="/history" class="secondary-link">View matchup history</a>
+    </section>
+{% endblock %}
     

@@ -3,49 +3,27 @@
 {% block title %}Matchup Results{% endblock %}
 
 {% block content %}
-    <h1>Matchup Results</h1>
-
-    <section class="prediction-card">
+    <section class="hero compact">
         <p class="eyebrow">Recent-form analysis</p>
-        <h2>{{ matchup.team_a.name }} vs {{ matchup.team_b.name }}</h2>
-
-        <div class="prediction-summary">
-            <div>
-                <p class="label">Favored Team</p>
-                <h3>{{ matchup.favored_team }}</h3>
-            </div>
-
-            <div>
-                <p class="label">Confidence</p>
-                <span class="confidence-badge {{ matchup.confidence|lower }}">
-                    {{ matchup.confidence }}
-                </span>
-            </div>
-
-            <div>
-                <p class="label">Score Difference</p>
-                <h3>{{ matchup.score_difference }}</h3>
-            </div>
-        </div>
-
-        {% if matchup.home_team %}
-            <p class="home-note">
-                Home team selected: <strong>{{ matchup.home_team }}</strong>
-            </p>
-        {% endif %}
-
-        <p class="explanation">{{ matchup.explanation }}</p>
+        <h1>Matchup Matrix</h1>
+        <p class="subtitle">
+            {{ matchup.team_a.name }} vs {{ matchup.team_b.name }}
+        </p>
     </section>
 
-    <section class="team-grid">
-        <div class="team-card">
-            <h3>{{ matchup.team_a.name }}</h3>
-            <p class="record">
-                {{ matchup.team_a.wins }}-{{ matchup.team_a.losses }}
-                <span>last {{ matchup.team_a.games_used }} games</span>
-            </p>
+    <section class="matchup-layout">
+        <article class="team-panel">
+            <div class="panel-header">
+                <p class="eyebrow">Team A</p>
+                <h2>{{ matchup.team_a.name }}</h2>
+            </div>
 
-            <ul class="stat-list">
+            <div class="record-block">
+                <span class="record-number">{{ matchup.team_a.wins }}-{{ matchup.team_a.losses }}</span>
+                <span class="record-label">Last {{ matchup.team_a.games_used }} games</span>
+            </div>
+
+            <ul class="metric-list">
                 <li>
                     <span>Avg points scored</span>
                     <strong>{{ matchup.team_a.avg_points_for }}</strong>
@@ -63,16 +41,65 @@
                     <strong>{{ matchup.team_a_score }}</strong>
                 </li>
             </ul>
-        </div>
+        </article>
 
-        <div class="team-card">
-            <h3>{{ matchup.team_b.name }}</h3>
-            <p class="record">
-                {{ matchup.team_b.wins }}-{{ matchup.team_b.losses }}
-                <span>last {{ matchup.team_b.games_used }} games</span>
-            </p>
+        <article class="prediction-panel">
+            <div class="season-pill">Matchup analysis</div>
 
-            <ul class="stat-list">
+            <div class="prediction-versus">
+                <div>
+                    <span>{{ matchup.team_a.name }}</span>
+                    <strong>{{ matchup.team_a_score }}</strong>
+                </div>
+
+                <div class="center-vs">VS</div>
+
+                <div>
+                    <span>{{ matchup.team_b.name }}</span>
+                    <strong>{{ matchup.team_b_score }}</strong>
+                </div>
+            </div>
+
+            <div class="winner-card">
+                <p class="label">Favored team</p>
+                <h2>{{ matchup.favored_team }}</h2>
+            </div>
+
+            <div class="prediction-stats">
+                <div>
+                    <p class="label">Confidence</p>
+                    <span class="confidence-badge {{ matchup.confidence|lower }}">
+                        {{ matchup.confidence }}
+                    </span>
+                </div>
+
+                <div>
+                    <p class="label">Score difference</p>
+                    <strong>{{ matchup.score_difference }}</strong>
+                </div>
+            </div>
+
+            {% if matchup.home_team %}
+                <p class="home-note">
+                    Home team selected: <strong>{{ matchup.home_team }}</strong>
+                </p>
+            {% endif %}
+
+            <p class="explanation">{{ matchup.explanation }}</p>
+        </article>
+
+        <article class="team-panel">
+            <div class="panel-header">
+                <p class="eyebrow">Team B</p>
+                <h2>{{ matchup.team_b.name }}</h2>
+            </div>
+
+            <div class="record-block">
+                <span class="record-number">{{ matchup.team_b.wins }}-{{ matchup.team_b.losses }}</span>
+                <span class="record-label">Last {{ matchup.team_b.games_used }} games</span>
+            </div>
+
+            <ul class="metric-list">
                 <li>
                     <span>Avg points scored</span>
                     <strong>{{ matchup.team_b.avg_points_for }}</strong>
@@ -90,10 +117,10 @@
                     <strong>{{ matchup.team_b_score }}</strong>
                 </li>
             </ul>
-        </div>
+        </article>
     </section>
 
-    <section class="comparison-card">
+    <section class="comparison-panel">
         <h3>Side-by-side comparison</h3>
 
         <table class="comparison-table">
@@ -104,29 +131,30 @@
                     <th>{{ matchup.team_b.name }}</th>
                 </tr>
             </thead>
+
             <tbody>
                 <tr>
-                    <td>Recent Record</td>
+                    <td>Recent record</td>
                     <td>{{ matchup.team_a.wins }}-{{ matchup.team_a.losses }}</td>
                     <td>{{ matchup.team_b.wins }}-{{ matchup.team_b.losses }}</td>
                 </tr>
                 <tr>
-                    <td>Avg Points Scored</td>
+                    <td>Avg points scored</td>
                     <td>{{ matchup.team_a.avg_points_for }}</td>
                     <td>{{ matchup.team_b.avg_points_for }}</td>
                 </tr>
                 <tr>
-                    <td>Avg Points Allowed</td>
+                    <td>Avg points allowed</td>
                     <td>{{ matchup.team_a.avg_points_against }}</td>
                     <td>{{ matchup.team_b.avg_points_against }}</td>
                 </tr>
                 <tr>
-                    <td>Point Differential</td>
+                    <td>Point differential</td>
                     <td>{{ matchup.team_a.point_diff }}</td>
                     <td>{{ matchup.team_b.point_diff }}</td>
                 </tr>
                 <tr>
-                    <td>Matchup Score</td>
+                    <td>Matchup score</td>
                     <td>{{ matchup.team_a_score }}</td>
                     <td>{{ matchup.team_b_score }}</td>
                 </tr>
@@ -134,5 +162,8 @@
         </table>
     </section>
 
-    <a href="/" class="back-link">Analyze another matchup</a>
+    <div class="page-actions">
+        <a href="/" class="secondary-link">Analyze another matchup</a>
+        <a href="/history" class="secondary-link">View history</a>
+    </div>
 {% endblock %}

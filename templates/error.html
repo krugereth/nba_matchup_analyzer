@@ -3,18 +3,18 @@
 {% block title %}Error{% endblock %}
 
 {% block content %}
+    <section class="hero compact">
+        <p class="eyebrow">Error</p>
+        <h1>Something went wrong</h1>
+    </section>
 
-<h1> Something went wrong</h1>
+    <div class="card">
+        <p>{{ message }}</p>
 
-<div class="card">
-    <p>{{ message }}</p>
+        {% if suggestion %}
+            <p><strong>Suggestion:</strong> {{ suggestion }}</p>
+        {% endif %}
 
-    {% if suggestion %}
-        <p><strong>Suggestion:</strong> {{ suggestion }}</p>
-    {% endif %}
-
-    <a href="/" class="back-link">Back to analyzer</a>
-
-</div>
-
+        <a href="/" class="back-link">Back to analyzer</a>
+    </div>
 {% endblock %}

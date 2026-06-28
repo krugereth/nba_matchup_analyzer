@@ -1,16 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NBA Matchup Analyzer{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
 
-    <head>
-        <meta name ="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{% block title %}NBA MATCHUP ANALYZER{% endblock %}</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    </head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <span class="brand-icon">🏀</span>
+            <span>NBA Matchup Analyzer</span>
+        </div>
 
-    <body>
-        <main class="container">
-            {% block content %}{% endblock %}
-        </main>
-    </body>
+        <nav class="nav-links">
+            <a href="/">Compare</a>
+            <a href="/history">History</a>
+        </nav>
+    </header>
 
+    <main class="page-shell">
+        {% block content %}{% endblock %}
+    </main>
+</body>
 </html>
