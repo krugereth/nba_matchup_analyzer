@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Matchup History{% endblock %}
+
+{% block content %}
+    <h1>Matchup History</h1>
+
+    {% if matchups %}
+        <div class="history-list">
+            {% for matchup in matchups %}
+                <div class="card">
+                    <h3>{{ matchup.team_a }} vs {{ matchup.team_b }}</h3>
+
+                    <p><strong>Favored team:</strong> {{ matchup.favored_team }}</p>
+                    <p><strong>Confidence:</strong> {{ matchup.confidence }}</p>
+                    <p><strong>Score difference:</strong> {{ matchup.score_difference }}</p>
+
+                    <p>{{ matchup.explanation }}</p>
+
+                    <p class="timestamp">
+                        Analyzed on {{ matchup.created_at }}
+                    </p>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card">
+            <p>No matchup history yet. Analyze a matchup first.</p>
+        </div>
+    {% endif %}
+
+    <a href="/" class="back-link">Back to analyzer</a>
+{% endblock %}
