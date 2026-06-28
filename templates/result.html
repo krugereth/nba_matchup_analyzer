@@ -14,8 +14,19 @@
     <section class="matchup-layout">
         <article class="team-panel">
             <div class="panel-header">
-                <p class="eyebrow">Team A</p>
-                <h2>{{ matchup.team_a.name }}</h2>
+                 <p class="eyebrow">Team A</p>
+
+                <div class="team-title">
+                    {% if matchup.team_a.logo_url %}
+                        <img 
+                            src="{{ matchup.team_a.logo_url }}" 
+                            alt="{{ matchup.team_a.name }} logo" 
+                            class="team-logo"
+                        >
+                    {% endif %}
+
+                    <h2>{{ matchup.team_a.name }}</h2>
+                </div>
             </div>
 
             <div class="record-block">
@@ -46,18 +57,40 @@
         <article class="prediction-panel">
             <div class="season-pill">Matchup analysis</div>
 
-            <div class="prediction-versus">
+            <div class="prediction-versus">     
                 <div>
-                    <span>{{ matchup.team_a.name }}</span>
+                    <span class="score-team-name">
+                        {% if matchup.team_a.logo_url %}
+                            <img 
+                                src="{{ matchup.team_a.logo_url }}" 
+                                alt="{{ matchup.team_a.name }} logo" 
+                                class="score-logo"
+                            >
+                        {% endif %}
+
+                        {{ matchup.team_a.name }}
+                    </span>
+
                     <strong>{{ matchup.team_a_score }}</strong>
-                </div>
+            </div>
 
-                <div class="center-vs">VS</div>
+            <div class="center-vs">VS</div>
 
-                <div>
-                    <span>{{ matchup.team_b.name }}</span>
-                    <strong>{{ matchup.team_b_score }}</strong>
-                </div>
+            <div>
+                <span class="score-team-name">
+                    {% if matchup.team_b.logo_url %}
+                        <img 
+                            src="{{ matchup.team_b.logo_url }}" 
+                            alt="{{ matchup.team_b.name }} logo" 
+                            class="score-logo"
+                        >
+                    {% endif %}
+
+                    {{ matchup.team_b.name }}
+                </span>
+
+                <strong>{{ matchup.team_b_score }}</strong>
+            </div>
             </div>
 
             <div class="winner-card">
@@ -91,7 +124,18 @@
         <article class="team-panel">
             <div class="panel-header">
                 <p class="eyebrow">Team B</p>
-                <h2>{{ matchup.team_b.name }}</h2>
+
+                <div class="team-title">
+                    {% if matchup.team_b.logo_url %}
+                        <img 
+                            src="{{ matchup.team_b.logo_url }}" 
+                            alt="{{ matchup.team_b.name }} logo" 
+                            class="team-logo"
+                        >
+                     {% endif %}
+
+                    <h2>{{ matchup.team_b.name }}</h2>
+                </div>
             </div>
 
             <div class="record-block">

@@ -6,6 +6,48 @@ import requests
 
 BASE_URL = "https://api.balldontlie.io/v1"
 
+TEAM_LOGO_SLUGS = {
+    "Atlanta Hawks": "atl",
+    "Boston Celtics": "bos",
+    "Brooklyn Nets": "bkn",
+    "Charlotte Hornets": "cha",
+    "Chicago Bulls": "chi",
+    "Cleveland Cavaliers": "cle",
+    "Dallas Mavericks": "dal",
+    "Denver Nuggets": "den",
+    "Detroit Pistons": "det",
+    "Golden State Warriors": "gsw",
+    "Houston Rockets": "hou",
+    "Indiana Pacers": "ind",
+    "LA Clippers": "lac",
+    "Los Angeles Lakers": "lal",
+    "Memphis Grizzlies": "mem",
+    "Miami Heat": "mia",
+    "Milwaukee Bucks": "mil",
+    "Minnesota Timberwolves": "min",
+    "New Orleans Pelicans": "nola",
+    "New York Knicks": "nyk",
+    "Oklahoma City Thunder": "okc",
+    "Orlando Magic": "orl",
+    "Philadelphia 76ers": "phi",
+    "Phoenix Suns": "phx",
+    "Portland Trail Blazers": "por",
+    "Sacramento Kings": "sac",
+    "San Antonio Spurs": "sas",
+    "Toronto Raptors": "tor",
+    "Utah Jazz": "uta",
+    "Washington Wizards": "wsh",
+}
+
+
+def get_team_logo_url(team_name):
+    slug = TEAM_LOGO_SLUGS.get(team_name)
+
+    if not slug:
+        return ""
+
+    return f"https://a.espncdn.com/i/teamlogos/nba/500/{slug}.png"
+
 
 def get_headers():
     api_key = os.getenv("BALLDONTLIE_API_KEY")
@@ -91,6 +133,7 @@ def build_team_summary(team_name, team_lookup):
     return {
         "name": team_name,
         "team_id": team_id,
+        "logo_url": get_team_logo_url(team_name),
         "games_used": games_used,
         "wins": wins,
         "losses": losses,

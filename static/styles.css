@@ -523,3 +523,36 @@ select:focus {
         min-width: 620px;
     }
 }
+.team-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.team-title h2 {
+    margin: 0;
+}
+
+.team-logo {
+    width: 46px;
+    height: 46px;
+    object-fit: contain;
+    background: var(--bg-card-dark);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 6px;
+}
+
+.score-team-name {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 36px;
+}
+
+.score-logo {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
