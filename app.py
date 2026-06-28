@@ -3,6 +3,7 @@ import requests
 from flask import Flask, render_template, request
 from dotenv import load_dotenv
 
+from database import init_db, save_matchup_result, get_recent_matchups
 from services.nba_api import get_team_lookup, build_team_summary, compare_recent_form
 from utils.predictor import build_matchup_result
 
@@ -10,6 +11,7 @@ from utils.predictor import build_matchup_result
 load_dotenv()
 
 app = Flask(__name__)
+init_db()
 
 NBA_TEAMS = [
     "Atlanta Hawks",
@@ -67,6 +69,8 @@ def analyze():
 
         matchup = build_matchup_result(team_a_summary, team_b_summary, home_team)
 
+        save_matchup_result(matchup)
+        
         return render_template("result.html", matchup=matchup)
     
     except requests.exceptions.HTTPError as e:
@@ -105,6 +109,11 @@ def analyze():
             message="An unexpected error occurred while analyzing the matchup.",
             suggestion=str(e)
         ), 500
+    
+@app.route("/history", methods=["GET"])
+def history():
+    matchups = get_recent_matchups()
+    return render_template("history.html", matchups=matchups)
         
 
 if __name__ == "__main__":
