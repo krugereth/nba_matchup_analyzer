@@ -56,6 +56,9 @@ def analyze():
     team_b_name = request.form.get("team_b")
     home_team = request.form.get("home_team")
 
+    if home_team not in [team_a_name, team_b_name]:
+       home_team = None
+
     if not team_a_name or not team_b_name:
         return "Please select both teams.", 400
 
@@ -87,7 +90,7 @@ def analyze():
             return render_template(
                 "error.html",
                 message="The NBA API rate limit was reached.",
-                suggestion="Wait about a minute, then try again. The app now caches repeated team lookups to reduce this issue."
+                suggestion="Wait about a minute, then try again."
             ), 429
 
         return render_template(

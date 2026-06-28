@@ -44,10 +44,7 @@
             <div class="form-column full-width">
                 <label for="home_team">Home Team</label>
                 <select name="home_team" id="home_team">
-                    <option value="">No home team selected</option>
-                    {% for team in teams %}
-                        <option value="{{ team }}">{{ team }}</option>
-                    {% endfor %}
+                    <option value="">No home team selected</option>                    
                 </select>
                 <p class="helper-text">Optional: Select the team with home court advantage for better analysis.</p>
             </div>
@@ -59,5 +56,52 @@
     <section class="quick-actions">
         <a href="/history" class="secondary-link">View matchup history</a>
     </section>
+
+    <script>
+    const teamASelect = document.getElementById("team_a");
+    const teamBSelect = document.getElementById("team_b");
+    const homeTeamSelect = document.getElementById("home_team");
+
+    function updateHomeTeamOptions() {
+        const teamA = teamASelect.value;
+        const teamB = teamBSelect.value;
+        const currentHomeTeam = homeTeamSelect.value;
+
+        homeTeamSelect.innerHTML = "";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.textContent = "No home team selected";
+        homeTeamSelect.appendChild(defaultOption);
+
+        const selectedTeams = [];
+
+        if (teamA) {
+            selectedTeams.push(teamA);
+        }
+
+        if (teamB && teamB !== teamA) {
+            selectedTeams.push(teamB);
+        }
+
+        selectedTeams.forEach(function(team) {
+            const option = document.createElement("option");
+            option.value = team;
+            option.textContent = team;
+            homeTeamSelect.appendChild(option);
+        });
+
+        if (selectedTeams.includes(currentHomeTeam)) {
+            homeTeamSelect.value = currentHomeTeam;
+        } else {
+            homeTeamSelect.value = "";
+        }
+    }
+
+    teamASelect.addEventListener("change", updateHomeTeamOptions);
+    teamBSelect.addEventListener("change", updateHomeTeamOptions);
+
+    updateHomeTeamOptions();
+</script>
 {% endblock %}
     
