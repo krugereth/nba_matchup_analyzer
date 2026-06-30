@@ -29,7 +29,7 @@ def build_explanation(team_a, team_b, favored_team, home_team=None):
 
     if team_a["point_diff"] != team_b["point_diff"]:
         better_diff_team = team_a["name"] if team_a["point_diff"] > team_b["point_diff"] else team_b["name"]
-        reasons.append(f"{better_diff_team} has the better scoring margin")
+        reasons.append(f"{better_diff_team} has the better point differential")
 
     if team_a["avg_points_for"] != team_b["avg_points_for"]:
         better_offense_team = team_a["name"] if team_a["avg_points_for"] > team_b["avg_points_for"] else team_b["name"]
@@ -45,7 +45,7 @@ def build_explanation(team_a, team_b, favored_team, home_team=None):
     if not reasons:
         return "Both teams look very similar based on the recent games analyzed."
 
-    return f"{favored_team} is favored because " + ", ".join(reasons[:3]) + "."
+    return f"{favored_team} are favored because " + ", ".join(reasons[:3]) + "."
 
 
 def build_matchup_result(team_a, team_b, home_team=None):

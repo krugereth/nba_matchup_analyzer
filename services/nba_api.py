@@ -172,6 +172,7 @@ def build_team_summary(team_name, team_lookup):
 
 
 def compare_recent_form(team_a, team_b, home_team=None):
+    
     if team_a["wins"] > team_b["wins"]:
         edge_team = team_a["name"]
         reason = f"{team_a['name']} has the stronger recent record."
