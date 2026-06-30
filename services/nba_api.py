@@ -110,6 +110,8 @@ def build_team_summary(team_name, team_lookup):
     points_for = 0
     points_against = 0
 
+    recent_games = []
+
     for game in games:
         home_team = game["home_team"]
 
@@ -128,6 +130,31 @@ def build_team_summary(team_name, team_lookup):
         points_for += scored
         points_against += allowed
 
+        home_team = game["home_team"]
+        visitor_team = game["visitor_team"]
+
+        if home_team["id"] == team_id:
+            scored = game["home_team_score"]
+            allowed = game["visitor_team_score"]
+            opponent = visitor_team["full_name"]
+            location = "Home"
+        else:
+            scored = game["visitor_team_score"]
+            allowed = game["home_team_score"]
+            opponent = home_team["full_name"]
+            location = "Away"
+
+        result = "W" if scored > allowed else "L"
+
+        recent_games.append({
+            "date": game.get("date", "")[:10],
+            "opponent": opponent,
+            "location": location,
+            "result": result,
+            "scored": scored,
+            "allowed": allowed,
+        })
+
     games_used = len(games)
 
     return {
@@ -140,6 +167,7 @@ def build_team_summary(team_name, team_lookup):
         "avg_points_for": round(points_for / games_used, 1),
         "avg_points_against": round(points_against / games_used, 1),
         "point_diff": round((points_for - points_against) / games_used, 1),
+        "recent_games": recent_games,
     }
 
 

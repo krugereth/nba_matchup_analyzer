@@ -205,6 +205,68 @@
             </tbody>
         </table>
     </section>
+<section class="comparison-panel">
+
+    <h3>Recent games used in analysis</h3>
+
+            <div class="recent-games-grid">
+                <div>
+                    <h4>{{ matchup.team_a.name }}</h4>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Opponent</th>
+                                <th>Location</th>
+                                <th>Result</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for game in matchup.team_a.recent_games %}
+                                <tr>
+                                    <td>{{ game.date }}</td>
+                                    <td>{{ game.opponent }}</td>
+                                    <td>{{ game.location }}</td>
+                                    <td>{{ game.result }}</td>
+                                    <td>{{ game.scored }}-{{ game.allowed }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div>
+                    <h4>{{ matchup.team_b.name }}</h4>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Opponent</th>
+                                <th>Location</th>
+                                <th>Result</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for game in matchup.team_b.recent_games %}
+                                <tr>
+                                    <td>{{ game.date }}</td>
+                                    <td>{{ game.opponent }}</td>
+                                    <td>{{ game.location }}</td>
+                                    <td>{{ game.result }}</td>
+                                    <td>{{ game.scored }}-{{ game.allowed }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
 
     <div class="page-actions">
         <a href="/" class="secondary-link">Analyze another matchup</a>
