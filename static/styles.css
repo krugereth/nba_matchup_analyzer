@@ -239,6 +239,7 @@ select:focus {
     padding: 11px 16px;
     border-radius: 8px;
     font-weight: 700;
+    margin-top: 10px;
 }
 
 .secondary-link:hover,
