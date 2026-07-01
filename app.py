@@ -1,9 +1,9 @@
 import requests
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from dotenv import load_dotenv
 
-from database import init_db, save_matchup_result, get_recent_matchups
+from database import init_db, save_matchup_result, get_recent_matchups, delete_matchup
 from services.nba_api import get_team_lookup, build_team_summary, compare_recent_form
 from utils.predictor import build_matchup_result
 
@@ -117,6 +117,11 @@ def analyze():
 def history():
     matchups = get_recent_matchups()
     return render_template("history.html", matchups=matchups)
+
+@app.route("/history/<int:matchup_id>/delete", methods=["POST"])
+def delete_history_item(matchup_id):
+    delete_matchup(matchup_id)
+    return redirect(url_for("history"))
         
 
 if __name__ == "__main__":

@@ -20,6 +20,14 @@
                     <p class="timestamp">
                         Analyzed on {{ matchup.created_at }}
                     </p>
+
+                    <form 
+                        action="{{ url_for('delete_history_item', matchup_id=matchup.id) }}" 
+                        method="POST"
+                        onsubmit="return confirm('Delete this saved matchup?');"
+                    >
+                        <button type="submit" class="danger-button">Delete</button>
+                    </form>
                 </div>
             {% endfor %}
         </div>

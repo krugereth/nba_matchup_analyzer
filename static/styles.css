@@ -574,3 +574,17 @@ select:focus {
         overflow-x: auto;
     }
 }
+
+.danger-button {
+    width: auto;
+    margin-top: 12px;
+    background: rgba(239, 107, 107, 0.14);
+    color: var(--red);
+    border: 1px solid rgba(239, 107, 107, 0.35);
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.danger-button:hover {
+    background: rgba(239, 107, 107, 0.22);
+}

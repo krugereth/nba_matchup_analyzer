@@ -74,3 +74,15 @@ def get_recent_matchups(limit=10):
     connection.close()
 
     return matchups
+
+def delete_matchup(matchup_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        DELETE FROM matchup_history
+        WHERE id = ?
+    """, (matchup_id,))
+
+    connection.commit()
+    connection.close()
