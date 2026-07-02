@@ -115,8 +115,23 @@ def analyze():
     
 @app.route("/history", methods=["GET"])
 def history():
-    matchups = get_recent_matchups()
-    return render_template("history.html", matchups=matchups)
+    team_query = request.args.get("team", "").strip()
+    confidence_filter = request.args.get("confidence", "").strip()
+
+    if confidence_filter not in ["Low", "Medium", "High"]:
+        confidence_filter = None
+
+    matchups = get_recent_matchups(
+        team_query=team_query,
+        confidence_filter=confidence_filter
+    )
+
+    return render_template(
+        "history.html",
+        matchups=matchups,
+        team_query=team_query,
+        confidence_filter=confidence_filter
+    )
 
 @app.route("/history/<int:matchup_id>/delete", methods=["POST"])
 def delete_history_item(matchup_id):

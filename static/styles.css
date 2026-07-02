@@ -589,3 +589,48 @@ select:focus {
 .danger-button:hover {
     background: rgba(239, 107, 107, 0.22);
 }
+
+.history-filter-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+    margin-bottom: 24px;
+}
+
+.history-filter-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto auto;
+    gap: 16px;
+    align-items: end;
+}
+
+input {
+    width: 100%;
+    padding: 13px 14px;
+    border-radius: 9px;
+    font-size: 15px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--gold);
+}
+
+.history-filter-form .primary-button,
+.history-filter-form .secondary-link {
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+@media (max-width: 800px) {
+    .history-filter-form {
+        grid-template-columns: 1fr;
+    }
+}

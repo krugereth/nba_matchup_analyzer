@@ -5,6 +5,34 @@
 {% block content %}
     <h1>Matchup History</h1>
 
+    <section class="history-filter-panel">
+    <form action="/history" method="GET" class="history-filter-form">
+        <div class="form-column">
+            <label for="team">Search team</label>
+            <input 
+                type="text" 
+                name="team" 
+                id="team" 
+                value="{{ team_query }}"
+                placeholder="Example: Lakers"
+            >
+        </div>
+
+        <div class="form-column">
+            <label for="confidence">Confidence</label>
+            <select name="confidence" id="confidence">
+                <option value="">All confidence levels</option>
+                <option value="Low" {% if confidence_filter == "Low" %}selected{% endif %}>Low</option>
+                <option value="Medium" {% if confidence_filter == "Medium" %}selected{% endif %}>Medium</option>
+                <option value="High" {% if confidence_filter == "High" %}selected{% endif %}>High</option>
+            </select>
+        </div>
+
+        <button type="submit" class="primary-button">Apply Filters</button>
+        <a href="/history" class="secondary-link">Clear Filters</a>
+    </form>
+</section>
+
     {% if matchups %}
         <div class="history-list">
             {% for matchup in matchups %}

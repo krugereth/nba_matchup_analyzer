@@ -58,21 +58,46 @@ def save_matchup_result(matchup):
     connection.close()
 
 
-def get_recent_matchups(limit=10):
+def get_recent_matchups(limit=20, team_query=None, confidence_filter=None):
     connection = get_connection()
     connection.row_factory = sqlite3.Row
     cursor = connection.cursor()
 
-    cursor.execute("""
+    query = """
         SELECT *
         FROM matchup_history
+        WHERE 1 = 1
+    """
+
+    params = []
+
+    if team_query:
+        query += """
+            AND (
+                team_a LIKE ?
+                OR team_b LIKE ?
+                OR favored_team LIKE ?
+            )
+        """
+        search_value = f"%{team_query}%"
+        params.extend([search_value, search_value, search_value])
+
+    if confidence_filter:
+        query += """
+            AND confidence = ?
+        """
+        params.append(confidence_filter)
+
+    query += """
         ORDER BY created_at DESC
         LIMIT ?
-    """, (limit,))
+    """
+    params.append(limit)
 
+    cursor.execute(query, params)
     matchups = cursor.fetchall()
-    connection.close()
 
+    connection.close()
     return matchups
 
 def delete_matchup(matchup_id):
