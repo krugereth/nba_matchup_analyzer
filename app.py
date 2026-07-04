@@ -56,6 +56,20 @@ def analyze():
     team_b_name = request.form.get("team_b")
     home_team = request.form.get("home_team")
 
+    if not team_a_name or not team_b_name:
+        return render_template(
+        "error.html",
+        message="Please select two teams before analyzing a matchup.",
+        suggestion="Go back and choose both Team A and Team B."
+        ), 400
+
+    if team_a_name == team_b_name:
+        return render_template(
+        "error.html",
+        message="A team cannot be compared against itself.",
+        suggestion="Please choose two different teams."
+        ), 400
+
     if home_team not in [team_a_name, team_b_name]:
        home_team = None
 
@@ -112,6 +126,8 @@ def analyze():
             message="An unexpected error occurred while analyzing the matchup.",
             suggestion=str(e)
         ), 500
+
+        
     
 @app.route("/history", methods=["GET"])
 def history():

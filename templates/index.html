@@ -62,6 +62,27 @@
     const teamBSelect = document.getElementById("team_b");
     const homeTeamSelect = document.getElementById("home_team");
 
+    function updateDisabledTeamOptions() {
+        const teamA = teamASelect.value;
+        const teamB = teamBSelect.value;
+
+        Array.from(teamASelect.options).forEach(function(option) {
+            option.disabled = false;
+
+            if (option.value && option.value === teamB) {
+                option.disabled = true;
+            }
+        });
+
+        Array.from(teamBSelect.options).forEach(function(option) {
+            option.disabled = false;
+
+            if (option.value && option.value === teamA) {
+                option.disabled = true;
+            }
+        });
+    }
+
     function updateHomeTeamOptions() {
         const teamA = teamASelect.value;
         const teamB = teamBSelect.value;
@@ -98,10 +119,15 @@
         }
     }
 
-    teamASelect.addEventListener("change", updateHomeTeamOptions);
-    teamBSelect.addEventListener("change", updateHomeTeamOptions);
+    function updateFormOptions() {
+        updateDisabledTeamOptions();
+        updateHomeTeamOptions();
+    }
 
-    updateHomeTeamOptions();
-</script>
+    teamASelect.addEventListener("change", updateFormOptions);
+    teamBSelect.addEventListener("change", updateFormOptions);
+
+    updateFormOptions();
+    </script>
 {% endblock %}
     
