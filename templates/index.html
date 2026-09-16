@@ -44,6 +44,16 @@
                 <p class="helper-text">Optional: Select the team with home court advantage for better analysis.</p>
             </div>
 
+            <div class="form-column full-width">
+                <label for="games_limit">Recent games to analyze</label>
+                <select name="games_limit" id="games_limit">
+                    <option value="5">Last 5 games</option>
+                    <option value="10" selected>Last 10 games</option>
+                    <option value="15">Last 15 games</option>
+                </select>
+                <p class="helper-text">Both teams use the same requested sample size when enough completed games are available.</p>
+            </div>
+
             <button type="submit" class="primary-button">Analyze Matchup</button>
         </form>
     </section>

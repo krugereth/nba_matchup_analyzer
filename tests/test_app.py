@@ -70,15 +70,18 @@ class AppRouteTests(unittest.TestCase):
         ))
         self.summary = self.enterContext(patch.object(
             self.web, "build_team_summary",
-            side_effect=lambda name, lookup: self.summaries[name],
+            side_effect=lambda name, lookup, games_limit: self.summaries[name],
         ))
 
     def record_template(self, sender, template, context, **extra):
         self.rendered.append((template.name, context))
 
-    def analyze(self, team_a="Los Angeles Lakers", team_b="Boston Celtics", home_team=""):
+    def analyze(self, team_a="Los Angeles Lakers", team_b="Boston Celtics", home_team="", games_limit=None):
+        form = {"team_a": team_a, "team_b": team_b, "home_team": home_team}
+        if games_limit is not None:
+            form["games_limit"] = games_limit
         return self.client.post("/analyze", data={
-            "team_a": team_a, "team_b": team_b, "home_team": home_team,
+            **form,
         })
 
     def assert_error(self, response, status, expected_text):
@@ -88,7 +91,10 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(database.get_recent_matchups(), [])
 
     def test_home_and_empty_history_render(self):
-        self.assertEqual(self.client.get("/").status_code, 200)
+        home = self.client.get("/")
+        self.assertEqual(home.status_code, 200)
+        self.assertIn('name="games_limit"', home.get_data(as_text=True))
+        self.assertIn('<option value="10" selected>', home.get_data(as_text=True))
         response = self.client.get("/history")
         self.assertEqual(response.status_code, 200)
         self.assertIn("No matchup history yet", response.get_data(as_text=True))
@@ -147,6 +153,23 @@ class AppRouteTests(unittest.TestCase):
         response = self.analyze(home_team="Toronto Raptors")
         self.assertEqual(response.status_code, 200)
         self.assertIsNone(self.rendered[-1][1]["matchup"]["home_team"])
+
+    def test_game_limit_is_passed_to_both_teams_with_default(self):
+        for value, expected in [(None, 10), ("5", 5), ("10", 10), ("15", 15)]:
+            with self.subTest(value=value):
+                self.summary.reset_mock()
+                response = self.analyze(games_limit=value)
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(self.summary.call_count, 2)
+                self.assertTrue(all(call.args[2] == expected for call in self.summary.call_args_list))
+
+    def test_invalid_game_limits_fail_before_api_or_history_save(self):
+        for value in ["", "0", "11", "-5", "5.0", "abc"]:
+            with self.subTest(value=value):
+                response = self.analyze(games_limit=value)
+                self.assert_error(response, 400, "Please choose 5, 10, or 15 recent games")
+        self.lookup.assert_not_called()
+        self.summary.assert_not_called()
 
     def test_missing_api_key_has_configuration_error(self):
         self.lookup.side_effect = self.web.APIConfigurationError("private diagnostic")

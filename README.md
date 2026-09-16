@@ -6,7 +6,7 @@ The project combines an interest in basketball with practice in Python, REST API
 
 ## Features
 
-- Select two different NBA teams and optionally give one home-court context.
+- Select two different NBA teams, choose the last 5, 10, or 15 completed games to analyze, and optionally give one home-court context.
 - Compare recent record, average points scored and allowed, and point differential.
 - View each team's matchup score, the favored team, a confidence label, and an explanation of the comparison.
 - Inspect the actual games used in the analysis, including date, opponent, location, win/loss badge, and score from the selected team's perspective.
@@ -18,7 +18,7 @@ The home-team dropdown only offers the two selected teams. The server also rejec
 
 ## How the analytics work
 
-The [BALLDONTLIE NBA API](https://nba.balldontlie.io/#get-all-games) supplies raw game results. The app retrieves all pages of regular-season games in the previous 300 days, keeps completed games, sorts newest first, and uses up to 10 games per team. At least 3 completed games are required. The form currently uses this fixed sample size.
+The [BALLDONTLIE NBA API](https://nba.balldontlie.io/#get-all-games) supplies raw game results. The app retrieves all pages of regular-season games in the previous 300 days, keeps completed games, and sorts them newest first. You can select the last 5, 10, or 15 games per team; the default is 10. At least 3 completed games are required. If fewer than the requested number are available, the app uses the completed games it found and shows the actual count.
 
 For each game, Python determines which score belongs to the selected team and calculates:
 
@@ -107,7 +107,7 @@ Stop the development server with `Ctrl+C`.
 
 ## Using the app
 
-1. On the home page, select Team A and Team B. Optionally choose which team is at home, then click **Analyze Matchup**.
+1. On the home page, select Team A and Team B, choose 5, 10, or 15 recent games, and optionally choose which team is at home. Then click **Analyze Matchup**.
 2. On the results page, compare both teams' recent statistics, the favored team, confidence label, explanation, and the two **Recent Games Used in Analysis** tables. A `W` or `L` describes the team named above that table.
 3. Open **History** to review saved analyses. Search for a team, filter by confidence, clear the filters, or delete an entry.
 
@@ -125,7 +125,7 @@ The tests use Python's standard-library `unittest`, mocked API responses, and te
 
 For a manual smoke test with an API key:
 
-1. Analyze Lakers vs. Celtics, then another pair, both with and without a home team.
+1. Analyze Lakers vs. Celtics, then another pair, with 5, 10, and 15 games and both with and without a home team.
 2. Check that home-team choices follow the selected teams and duplicate team selections are prevented.
 3. Confirm each recent-games table matches its team's record, averages, and point differential. Away-game scores should still show the selected team's points first.
 4. Open `/history`; verify the saved analysis, team search, confidence filter, clear-filters action, and deletion. Check the empty state using a fresh local database or after deleting test entries.
@@ -135,7 +135,7 @@ For a manual smoke test with an API key:
 
 - Team lookup is cached for the life of the process. Recent-game requests use a bounded in-memory cache with 15-minute time windows and the current date in the cache key. Crossing a window boundary, changing dates, or restarting the app causes fresh requests.
 - Data availability depends on BALLDONTLIE access and rate limits. Pagination can require multiple requests, and caching does not eliminate rate limits.
-- Teams can have different sample sizes when fewer than 10 completed games are available. The wins component uses the win count, so sample size affects the score.
+- Teams can have different sample sizes when fewer than the requested number of completed games are available. The wins component uses the win count, so sample size affects the score.
 - The fixed weights have not been validated for predictive accuracy. The model does not account for injuries, lineups, opponent strength, or future outcomes.
 - History stores a summary of each analysis, not the full game list. The history page shows the latest 20 matching entries; older entries remain in SQLite.
 - Team logos load from ESPN's external image CDN. SQLite history is stored locally in `matchups.db`.
@@ -144,7 +144,6 @@ For a manual smoke test with an API key:
 
 These are ideas for later development and are **not implemented yet**:
 
-- Add a validated 5/10/15-game selector so users can choose the recent-form sample size.
 - Display each component of the matchup score beside the total, making the rule-based calculation easier to inspect.
 - Add history summary statistics, such as total analyses and confidence counts.
 - Add screenshots of the home page, results, recent-games tables, and history page after the final visual review.

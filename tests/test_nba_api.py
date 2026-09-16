@@ -120,6 +120,29 @@ class RecentGamesTests(unittest.TestCase):
         self.assertTrue(all(row["opponent"] == "Los Angeles Clippers" for row in rows))
         self.assertEqual(rows[0]["date"], "2026-09-15")
 
+    def test_selected_sample_size_recalculates_stats_from_matching_rows(self):
+        games = [
+            make_game(i, i, scored=100 + i, allowed=105, away=i % 2 == 0)
+            for i in range(1, 16)
+        ]
+        self.get.return_value = response_with(games)
+
+        for limit in (5, 10, 15):
+            with self.subTest(limit=limit):
+                summary = nba_api.build_team_summary(
+                    "Boston Celtics", {"Boston Celtics": 1}, games_limit=limit
+                )
+                rows = summary["recent_games"]
+                self.assertEqual(summary["games_used"], limit)
+                self.assertEqual(len(rows), limit)
+                self.assertEqual(summary["wins"], sum(row["result"] == "W" for row in rows))
+                self.assertEqual(summary["losses"], sum(row["result"] == "L" for row in rows))
+                self.assertEqual(summary["avg_points_for"], round(sum(row["scored"] for row in rows) / limit, 1))
+                self.assertEqual(summary["avg_points_against"], round(sum(row["allowed"] for row in rows) / limit, 1))
+                self.assertEqual(summary["point_diff"], round(sum(row["scored"] - row["allowed"] for row in rows) / limit, 1))
+
+        self.assertEqual(self.get.call_count, 1)
+
     def test_fewer_than_three_completed_games_are_rejected(self):
         self.get.return_value = response_with([
             make_game(1, 1), make_game(2, 2), make_game(3, 0, status="Halftime")

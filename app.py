@@ -45,6 +45,7 @@ NBA_TEAMS = [
     "Utah Jazz",
     "Washington Wizards",
 ]
+GAMES_LIMIT_OPTIONS = {5, 10, 15}
 
 
 @app.route("/", methods=["GET"])
@@ -57,6 +58,7 @@ def analyze():
     team_a_name = request.form.get("team_a")
     team_b_name = request.form.get("team_b")
     home_team = request.form.get("home_team")
+    games_limit_value = request.form.get("games_limit", "10")
 
     if not team_a_name or not team_b_name:
         return render_template(
@@ -79,13 +81,22 @@ def analyze():
             suggestion="Go back and select both teams using the dropdown menus."
         ), 400
 
+    if games_limit_value not in {str(limit) for limit in GAMES_LIMIT_OPTIONS}:
+        return render_template(
+            "error.html",
+            message="Please choose 5, 10, or 15 recent games.",
+            suggestion="Go back and select a valid sample size."
+        ), 400
+
+    games_limit = int(games_limit_value)
+
     if home_team not in [team_a_name, team_b_name]:
         home_team = None
 
     try:
         team_lookup = get_team_lookup()
-        team_a_summary = build_team_summary(team_a_name, team_lookup)
-        team_b_summary = build_team_summary(team_b_name, team_lookup)
+        team_a_summary = build_team_summary(team_a_name, team_lookup, games_limit)
+        team_b_summary = build_team_summary(team_b_name, team_lookup, games_limit)
 
         matchup = build_matchup_result(team_a_summary, team_b_summary, home_team)
 

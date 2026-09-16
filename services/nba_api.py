@@ -126,13 +126,13 @@ def _get_recent_games_for_team(team_id, today, cache_window):
     return final_games
 
 
-def build_team_summary(team_name, team_lookup):
+def build_team_summary(team_name, team_lookup, games_limit=10):
     team_name = TEAM_NAME_ALIASES.get(team_name, team_name)
     if team_name not in team_lookup:
         raise ValueError(f"Could not find team: {team_name}")
 
     team_id = team_lookup[team_name]
-    games = get_recent_games_for_team(team_id)
+    games = get_recent_games_for_team(team_id, limit=games_limit)
 
     if len(games) < 3:
         raise ValueError(f"Not enough recent completed games for {team_name}")
