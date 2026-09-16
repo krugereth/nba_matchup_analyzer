@@ -47,10 +47,6 @@ body {
     letter-spacing: -0.02em;
 }
 
-.brand-icon {
-    font-size: 22px;
-}
-
 .nav-links {
     display: flex;
     gap: 24px;
@@ -109,31 +105,6 @@ h4 {
     margin: 12px auto 0;
     color: var(--text-muted);
     line-height: 1.6;
-}
-
-.tabs {
-    display: flex;
-    justify-content: center;
-    gap: 0;
-    margin: 0 auto 28px;
-    width: fit-content;
-    background: var(--bg-card-dark);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.tab {
-    padding: 12px 40px;
-    color: var(--text-muted);
-    font-size: 14px;
-    font-weight: 800;
-}
-
-.tab.active {
-    background: #151c29;
-    color: var(--text-main);
-    border-bottom: 2px solid var(--gold);
 }
 
 .compare-panel {
@@ -225,6 +196,7 @@ select:focus {
 .quick-actions,
 .page-actions {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     gap: 12px;
     margin-top: 22px;
@@ -489,16 +461,6 @@ select:focus {
         font-size: 34px;
     }
 
-    .tabs {
-        width: 100%;
-    }
-
-    .tab {
-        flex: 1;
-        text-align: center;
-        padding: 11px 10px;
-    }
-
     .matchup-form {
         grid-template-columns: 1fr;
     }
@@ -560,7 +522,7 @@ select:focus {
 
 .recent-games-grid {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 28px;
 }
 
@@ -570,10 +532,47 @@ select:focus {
     color: var(--gold);
 }
 
-@media (max-width: 700px) {
-    .recent-games-grid {
-        overflow-x: auto;
-    }
+.recent-games-note {
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 24px;
+}
+
+.table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.table-scroll:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+}
+
+.recent-games-table {
+    min-width: 620px;
+}
+
+.recent-games-table td:not(:nth-child(2)) {
+    white-space: nowrap;
+}
+
+.result-badge {
+    display: inline-block;
+    min-width: 30px;
+    padding: 5px 8px;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: 800;
+}
+
+.result-badge.win {
+    color: var(--green);
+    background: rgba(81, 216, 138, 0.15);
+}
+
+.result-badge.loss {
+    color: var(--red);
+    background: rgba(239, 107, 107, 0.14);
 }
 
 .danger-button {
@@ -627,6 +626,8 @@ input:focus {
     align-items: center;
     justify-content: center;
     white-space: nowrap;
+    grid-column: auto;
+    margin-top: 0;
 }
 
 @media (max-width: 800px) {

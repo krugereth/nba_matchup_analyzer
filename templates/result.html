@@ -205,68 +205,49 @@
             </tbody>
         </table>
     </section>
-<section class="comparison-panel">
+    <section class="comparison-panel">
+        <h3>Recent Games Used in Analysis</h3>
+        <p class="recent-games-note">
+            These completed regular-season games produced the statistics above.
+            Scores show the analyzed team's points first. W = win; L = loss.
+        </p>
 
-    <h3>Recent Games</h3>
-
-            <div class="recent-games-grid">
+        <div class="recent-games-grid">
+            {% for team in [matchup.team_a, matchup.team_b] %}
                 <div>
-                    <h4>{{ matchup.team_a.name }}</h4>
+                    <h4 id="recent-team-{{ loop.index }}">{{ team.name }} · {{ team.games_used }} games</h4>
 
-                    <table class="comparison-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Opponent</th>
-                                <th>Location</th>
-                                <th>Result</th>
-                                <th>Score</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            {% for game in matchup.team_a.recent_games %}
+                    <div class="table-scroll" role="region" aria-labelledby="recent-team-{{ loop.index }}" tabindex="0">
+                        <table class="comparison-table recent-games-table" aria-labelledby="recent-team-{{ loop.index }}">
+                            <thead>
                                 <tr>
-                                    <td>{{ game.date }}</td>
-                                    <td>{{ game.opponent }}</td>
-                                    <td>{{ game.location }}</td>
-                                    <td>{{ game.result }}</td>
-                                    <td>{{ game.scored }}-{{ game.allowed }}</td>
+                                    <th scope="col">Date</th>
+                                    <th scope="col">Opponent</th>
+                                    <th scope="col">Location</th>
+                                    <th scope="col">Result</th>
+                                    <th scope="col">Score</th>
                                 </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                            </thead>
+
+                            <tbody>
+                                {% for game in team.recent_games %}
+                                    <tr>
+                                        <td>{{ game.date }}</td>
+                                        <td>{{ game.opponent }}</td>
+                                        <td>{{ game.location }}</td>
+                                        <td>
+                                            <span class="result-badge {{ 'win' if game.result == 'W' else 'loss' }}" aria-label="{{ 'Win' if game.result == 'W' else 'Loss' }}">{{ game.result }}</span>
+                                        </td>
+                                        <td>{{ game.scored }}-{{ game.allowed }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-
-                <div>
-                    <h4>{{ matchup.team_b.name }}</h4>
-
-                    <table class="comparison-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Opponent</th>
-                                <th>Location</th>
-                                <th>Result</th>
-                                <th>Score</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            {% for game in matchup.team_b.recent_games %}
-                                <tr>
-                                    <td>{{ game.date }}</td>
-                                    <td>{{ game.opponent }}</td>
-                                    <td>{{ game.location }}</td>
-                                    <td>{{ game.result }}</td>
-                                    <td>{{ game.scored }}-{{ game.allowed }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
+            {% endfor %}
+        </div>
+    </section>
 
     <div class="page-actions">
         <a href="/" class="secondary-link">Analyze another matchup</a>

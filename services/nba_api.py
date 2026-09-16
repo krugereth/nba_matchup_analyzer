@@ -1,10 +1,13 @@
 import os
 from datetime import date, timedelta
 from functools import lru_cache
+from time import monotonic
 
 import requests
 
 BASE_URL = "https://api.balldontlie.io/v1"
+RECENT_GAMES_CACHE_SECONDS = 15 * 60
+TEAM_NAME_ALIASES = {"LA Clippers": "Los Angeles Clippers"}
 
 TEAM_LOGO_SLUGS = {
     "Atlanta Hawks": "atl",
@@ -19,7 +22,7 @@ TEAM_LOGO_SLUGS = {
     "Golden State Warriors": "gsw",
     "Houston Rockets": "hou",
     "Indiana Pacers": "ind",
-    "LA Clippers": "lac",
+    "Los Angeles Clippers": "lac",
     "Los Angeles Lakers": "lal",
     "Memphis Grizzlies": "mem",
     "Miami Heat": "mia",
@@ -40,7 +43,12 @@ TEAM_LOGO_SLUGS = {
 }
 
 
+class APIConfigurationError(RuntimeError):
+    pass
+
+
 def get_team_logo_url(team_name):
+    team_name = TEAM_NAME_ALIASES.get(team_name, team_name)
     slug = TEAM_LOGO_SLUGS.get(team_name)
 
     if not slug:
@@ -52,8 +60,9 @@ def get_team_logo_url(team_name):
 def get_headers():
     api_key = os.getenv("BALLDONTLIE_API_KEY")
     if not api_key:
-        raise RuntimeError("BALLDONTLIE_API_KEY is missing from .env")
+        raise APIConfigurationError("BALLDONTLIE_API_KEY is missing from .env")
     return {"Authorization": api_key}
+
 
 @lru_cache(maxsize=1)
 def get_team_lookup():
@@ -65,37 +74,60 @@ def get_team_lookup():
     response.raise_for_status()
 
     teams = response.json().get("data", [])
-    return {team["full_name"]: team["id"] for team in teams}
+    return {
+        TEAM_NAME_ALIASES.get(team["full_name"], team["full_name"]): team["id"]
+        for team in teams
+    }
 
-@lru_cache(maxsize=60)
+
 def get_recent_games_for_team(team_id, limit=10):
     today = date.today()
+    cache_window = int(monotonic() // RECENT_GAMES_CACHE_SECONDS)
+    return _get_recent_games_for_team(team_id, today, cache_window)[:limit]
+
+
+@lru_cache(maxsize=60)
+def _get_recent_games_for_team(team_id, today, cache_window):
+    # Date and time-window keys keep cached games fresh during long-running sessions.
     start_date = today - timedelta(days=300)
 
     params = {
         "team_ids[]": team_id,
-        "postseason": "false",
-        "per_page": 25,
+        "season_type": "regular",
+        "per_page": 100,
         "start_date": start_date.isoformat(),
         "end_date": today.isoformat(),
     }
 
-    response = requests.get(
-        f"{BASE_URL}/games",
-        headers=get_headers(),
-        params=params,
-        timeout=15
-    )
-    response.raise_for_status()
+    games = []
+    cursor = None
+    while True:
+        page_params = dict(params)
+        if cursor is not None:
+            page_params["cursor"] = cursor
 
-    games = response.json().get("data", [])
+        response = requests.get(
+            f"{BASE_URL}/games",
+            headers=get_headers(),
+            params=page_params,
+            timeout=15
+        )
+        response.raise_for_status()
+
+        payload = response.json()
+        games.extend(payload.get("data", []))
+        cursor = payload.get("meta", {}).get("next_cursor")
+        if cursor is None:
+            break
+
     final_games = [game for game in games if game.get("status") == "Final"]
     final_games.sort(key=lambda g: g.get("date", ""), reverse=True)
 
-    return final_games[:limit]
+    return final_games
 
 
 def build_team_summary(team_name, team_lookup):
+    team_name = TEAM_NAME_ALIASES.get(team_name, team_name)
     if team_name not in team_lookup:
         raise ValueError(f"Could not find team: {team_name}")
 
@@ -114,23 +146,6 @@ def build_team_summary(team_name, team_lookup):
 
     for game in games:
         home_team = game["home_team"]
-
-        if home_team["id"] == team_id:
-            scored = game["home_team_score"]
-            allowed = game["visitor_team_score"]
-        else:
-            scored = game["visitor_team_score"]
-            allowed = game["home_team_score"]
-
-        if scored > allowed:
-            wins += 1
-        else:
-            losses += 1
-
-        points_for += scored
-        points_against += allowed
-
-        home_team = game["home_team"]
         visitor_team = game["visitor_team"]
 
         if home_team["id"] == team_id:
@@ -144,11 +159,19 @@ def build_team_summary(team_name, team_lookup):
             opponent = home_team["full_name"]
             location = "Away"
 
+        if scored > allowed:
+            wins += 1
+        else:
+            losses += 1
+
+        points_for += scored
+        points_against += allowed
+
         result = "W" if scored > allowed else "L"
 
         recent_games.append({
             "date": game.get("date", "")[:10],
-            "opponent": opponent,
+            "opponent": TEAM_NAME_ALIASES.get(opponent, opponent),
             "location": location,
             "result": result,
             "scored": scored,
@@ -169,38 +192,3 @@ def build_team_summary(team_name, team_lookup):
         "point_diff": round((points_for - points_against) / games_used, 1),
         "recent_games": recent_games,
     }
-
-
-def compare_recent_form(team_a, team_b, home_team=None):
-    
-    if team_a["wins"] > team_b["wins"]:
-        edge_team = team_a["name"]
-        reason = f"{team_a['name']} has the stronger recent record."
-    elif team_b["wins"] > team_a["wins"]:
-        edge_team = team_b["name"]
-        reason = f"{team_b['name']} has the stronger recent record."
-    elif team_a["point_diff"] > team_b["point_diff"]:
-        edge_team = team_a["name"]
-        reason = f"Both teams have similar recent records, but {team_a['name']} has the better scoring margin."
-    elif team_b["point_diff"] > team_a["point_diff"]:
-        edge_team = team_b["name"]
-        reason = f"Both teams have similar recent records, but {team_b['name']} has the better scoring margin."
-    else:
-        edge_team = "Even"
-        reason = "Both teams look very similar based on recent games."
-
-    home_note = None
-    if home_team and home_team in {team_a['name'], team_b['name']}:
-        home_note = f"Home-court context: {home_team} was selected as the home team."
-
-    return {
-        "team_a": team_a,
-        "team_b": team_b,
-        "edge_team": edge_team,
-        "reason": reason,
-        "home_note": home_note,
-    }
-
-
-
-    

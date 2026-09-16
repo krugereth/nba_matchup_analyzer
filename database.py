@@ -89,7 +89,7 @@ def get_recent_matchups(limit=20, team_query=None, confidence_filter=None):
         params.append(confidence_filter)
 
     query += """
-        ORDER BY created_at DESC
+        ORDER BY created_at DESC, id DESC
         LIMIT ?
     """
     params.append(limit)

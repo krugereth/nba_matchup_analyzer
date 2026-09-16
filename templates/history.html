@@ -61,7 +61,11 @@
         </div>
     {% else %}
         <div class="card">
-            <p>No matchup history yet. Analyze a matchup first.</p>
+            {% if team_query or confidence_filter %}
+                <p>No saved matchups match these filters. Try another team or clear the filters.</p>
+            {% else %}
+                <p>No matchup history yet. Analyze a matchup first.</p>
+            {% endif %}
         </div>
     {% endif %}
 

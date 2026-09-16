@@ -1,0 +1,261 @@
+"""Route regressions using synthetic summaries and an isolated SQLite database."""
+
+import importlib
+from contextlib import closing
+from pathlib import Path
+import tempfile
+import unittest
+from unittest.mock import patch
+
+from flask import template_rendered
+import requests
+
+import database
+
+
+def team_summary(name, team_id):
+    games = [
+        {"date": "2026-09-12", "opponent": "Fixture Opponent One",
+         "location": "Home", "result": "W", "scored": 110, "allowed": 100},
+        {"date": "2026-09-10", "opponent": "Fixture Opponent Two",
+         "location": "Away", "result": "L", "scored": 95, "allowed": 105},
+        {"date": "2026-09-08", "opponent": "Fixture Opponent Three",
+         "location": "Home", "result": "W", "scored": 110, "allowed": 95},
+    ]
+    return {
+        "name": name, "team_id": team_id, "logo_url": "", "games_used": 3,
+        "wins": 2, "losses": 1, "avg_points_for": 105.0,
+        "avg_points_against": 100.0, "point_diff": 5.0, "recent_games": games,
+    }
+
+
+class AppRouteTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.temporary_directory = tempfile.TemporaryDirectory(prefix="nba-route-tests-")
+        cls.database_patch = patch.object(
+            database, "DATABASE_NAME",
+            str(Path(cls.temporary_directory.name) / "test-matchups.db"),
+        )
+        cls.database_patch.start()
+        # app initializes SQLite during import: patch the path before importing it.
+        cls.web = importlib.import_module("app")
+        database.init_db()
+        cls.web.app.config.update(TESTING=True)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.database_patch.stop()
+        cls.temporary_directory.cleanup()
+
+    def setUp(self):
+        with closing(database.get_connection()) as connection:
+            connection.execute("DELETE FROM matchup_history")
+            connection.commit()
+        self.client = self.web.app.test_client()
+        self.rendered = []
+        template_rendered.connect(self.record_template, self.web.app)
+        self.addCleanup(template_rendered.disconnect, self.record_template, self.web.app)
+        self.team_names = [
+            "Los Angeles Lakers", "Boston Celtics",
+            "Toronto Raptors", "Golden State Warriors",
+        ]
+        self.summaries = {
+            name: team_summary(name, index)
+            for index, name in enumerate(self.team_names, start=1)
+        }
+        self.lookup = self.enterContext(patch.object(
+            self.web, "get_team_lookup",
+            return_value={name: value["team_id"] for name, value in self.summaries.items()},
+        ))
+        self.summary = self.enterContext(patch.object(
+            self.web, "build_team_summary",
+            side_effect=lambda name, lookup: self.summaries[name],
+        ))
+
+    def record_template(self, sender, template, context, **extra):
+        self.rendered.append((template.name, context))
+
+    def analyze(self, team_a="Los Angeles Lakers", team_b="Boston Celtics", home_team=""):
+        return self.client.post("/analyze", data={
+            "team_a": team_a, "team_b": team_b, "home_team": home_team,
+        })
+
+    def assert_error(self, response, status, expected_text):
+        self.assertEqual(response.status_code, status)
+        self.assertEqual(self.rendered[-1][0], "error.html")
+        self.assertIn(expected_text, response.get_data(as_text=True))
+        self.assertEqual(database.get_recent_matchups(), [])
+
+    def test_home_and_empty_history_render(self):
+        self.assertEqual(self.client.get("/").status_code, 200)
+        response = self.client.get("/history")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("No matchup history yet", response.get_data(as_text=True))
+
+    def test_route_method_limits(self):
+        self.assertEqual(self.client.get("/analyze").status_code, 405)
+        self.assertEqual(self.client.get("/history/1/delete").status_code, 405)
+
+    def test_requested_matchups_render_recent_games_and_home_bonus(self):
+        for team_a, team_b in [self.team_names[:2], self.team_names[2:]]:
+            neutral = None
+            for home in ["", team_a, team_b]:
+                with self.subTest(team_a=team_a, team_b=team_b, home=home):
+                    response = self.analyze(team_a, team_b, home)
+                    self.assertEqual(response.status_code, 200)
+                    text = response.get_data(as_text=True)
+                    self.assertIn(team_a, text)
+                    self.assertIn(team_b, text)
+                    self.assertEqual(text.count("Fixture Opponent One"), 2)
+                    self.assertEqual(text.count("Fixture Opponent Two"), 2)
+                    self.assertEqual(text.count("Fixture Opponent Three"), 2)
+                    self.assertEqual(text.count("2026-09-12"), 2)
+                    self.assertEqual(text.count('class="comparison-table recent-games-table"'), 2)
+                    self.assertEqual(text.count('class="table-scroll"'), 2)
+                    self.assertIn("110-100", text)
+                    matchup = self.rendered[-1][1]["matchup"]
+                    self.assertEqual(matchup["home_team"], home or None)
+                    if home:
+                        selected = "team_a" if home == team_a else "team_b"
+                        other = "team_b" if home == team_a else "team_a"
+                        self.assertEqual(
+                            matchup[selected + "_score"] - neutral[selected + "_score"], 3,
+                        )
+                        self.assertEqual(matchup[other + "_score"], neutral[other + "_score"])
+                    else:
+                        neutral = matchup
+        self.assertEqual(len(database.get_recent_matchups()), 6)
+
+    def test_invalid_teams_are_rejected_before_api_access(self):
+        forms = [
+            {}, {"team_a": "Los Angeles Lakers"},
+            {"team_a": "Los Angeles Lakers", "team_b": "Los Angeles Lakers"},
+            {"team_a": "Unknown Team", "team_b": "Boston Celtics"},
+            {"team_a": "Los Angeles Lakers", "team_b": "Unknown Team"},
+        ]
+        for form in forms:
+            with self.subTest(form=form):
+                response = self.client.post("/analyze", data=form)
+                self.assertEqual(response.status_code, 400)
+                self.assertEqual(self.rendered[-1][0], "error.html")
+        self.lookup.assert_not_called()
+        self.summary.assert_not_called()
+        self.assertEqual(database.get_recent_matchups(), [])
+
+    def test_invalid_home_selection_is_neutral(self):
+        response = self.analyze(home_team="Toronto Raptors")
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(self.rendered[-1][1]["matchup"]["home_team"])
+
+    def test_missing_api_key_has_configuration_error(self):
+        self.lookup.side_effect = self.web.APIConfigurationError("private diagnostic")
+        response = self.analyze()
+        self.assert_error(response, 503, "API key has not been configured")
+        self.assertNotIn("private diagnostic", response.get_data(as_text=True))
+
+    def test_http_api_errors_have_expected_status_and_message(self):
+        for status, text in [
+            (401, "API key is missing, invalid"),
+            (429, "rate limit was reached"),
+            (500, "status code 500"),
+        ]:
+            with self.subTest(status=status):
+                upstream_response = requests.Response()
+                upstream_response.status_code = status
+                self.lookup.side_effect = requests.exceptions.HTTPError(
+                    "private diagnostic", response=upstream_response,
+                )
+                response = self.analyze()
+                self.assert_error(response, status, text)
+                self.assertNotIn("private diagnostic", response.get_data(as_text=True))
+
+    def test_timeout_errors_have_retry_message(self):
+        for error_type in [requests.exceptions.Timeout, requests.exceptions.ConnectTimeout,
+                           requests.exceptions.ReadTimeout]:
+            with self.subTest(error_type=error_type.__name__):
+                self.lookup.side_effect = error_type("private diagnostic")
+                response = self.analyze()
+                self.assert_error(response, 504, "took too long to respond")
+                self.assertNotIn("private diagnostic", response.get_data(as_text=True))
+
+    def test_connection_error_has_connection_message(self):
+        self.lookup.side_effect = requests.exceptions.ConnectionError("private diagnostic")
+        response = self.analyze()
+        self.assert_error(response, 502, "could not be reached")
+        self.assertNotIn("private diagnostic", response.get_data(as_text=True))
+
+    def test_other_request_error_has_generic_message(self):
+        self.lookup.side_effect = requests.exceptions.RequestException("private diagnostic")
+        response = self.analyze()
+        self.assert_error(response, 502, "could not be completed")
+        self.assertNotIn("private diagnostic", response.get_data(as_text=True))
+
+    def test_malformed_api_json_is_safe_upstream_error(self):
+        self.lookup.side_effect = requests.exceptions.JSONDecodeError(
+            "private diagnostic", "invalid response", 0,
+        )
+        response = self.analyze()
+        self.assert_error(response, 502, "could not be completed")
+        self.assertNotIn("private diagnostic", response.get_data(as_text=True))
+
+    def test_insufficient_games_has_useful_error(self):
+        self.summary.side_effect = ValueError("Not enough recent completed games for Boston Celtics")
+        self.assert_error(self.analyze(), 400, "Not enough recent completed games")
+
+    def test_unexpected_exception_does_not_expose_diagnostics(self):
+        self.lookup.side_effect = RuntimeError("private diagnostic")
+        with self.assertLogs(self.web.app.logger, level="ERROR"):
+            response = self.analyze()
+        self.assert_error(response, 500, "unexpected error occurred")
+        self.assertNotIn("private diagnostic", response.get_data(as_text=True))
+
+    def test_history_filters_combine_and_ignore_invalid_confidence(self):
+        self.analyze()
+        self.analyze(home_team="Los Angeles Lakers")
+        self.analyze("Toronto Raptors", "Golden State Warriors")
+        with closing(database.get_connection()) as connection:
+            rows = connection.execute("SELECT id FROM matchup_history ORDER BY id").fetchall()
+            for row, confidence in zip(rows, ["Low", "High", "Medium"]):
+                connection.execute("UPDATE matchup_history SET confidence = ? WHERE id = ?",
+                                   (confidence, row[0]))
+            connection.commit()
+        response = self.client.get("/history?team=lAkErS")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(self.rendered[-1][1]["matchups"]), 2)
+        self.client.get("/history?team=Lakers&confidence=High")
+        matches = self.rendered[-1][1]["matchups"]
+        self.assertEqual(len(matches), 1)
+        self.assertEqual(matches[0]["confidence"], "High")
+        self.client.get("/history?confidence=invalid")
+        self.assertEqual(len(self.rendered[-1][1]["matchups"]), 3)
+        response = self.client.get("/history?team=nonexistent")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.rendered[-1][1]["matchups"], [])
+        self.assertIn("No saved matchups match these filters", response.get_data(as_text=True))
+
+    def test_same_second_history_is_newest_first(self):
+        with patch.object(database, "datetime") as frozen_datetime:
+            frozen_datetime.now.return_value.strftime.return_value = "2026-09-16 12:00:00"
+            self.analyze()
+            self.analyze("Toronto Raptors", "Golden State Warriors")
+            self.analyze(home_team="Los Angeles Lakers")
+        self.client.get("/history")
+        ids = [row["id"] for row in self.rendered[-1][1]["matchups"]]
+        self.assertEqual(ids, sorted(ids, reverse=True))
+
+    def test_deletion_removes_only_selected_record_then_empty_history(self):
+        self.analyze()
+        self.analyze("Toronto Raptors", "Golden State Warriors")
+        first, second = database.get_recent_matchups()
+        response = self.client.post(f"/history/{first['id']}/delete", follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([row["id"] for row in database.get_recent_matchups()], [second["id"]])
+        self.assertEqual(self.client.post("/history/999999/delete").status_code, 302)
+        response = self.client.post(f"/history/{second['id']}/delete", follow_redirects=True)
+        self.assertIn("No matchup history yet", response.get_data(as_text=True))
+        self.assertEqual(database.get_recent_matchups(), [])
+
+
+if __name__ == "__main__":
+    unittest.main()
