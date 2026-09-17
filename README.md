@@ -10,6 +10,7 @@ The project combines an interest in basketball with practice in Python, REST API
 - Compare recent record, average points scored and allowed, and point differential.
 - View each team's matchup score, the favored team, a confidence label, and an explanation of the comparison.
 - Inspect the actual games used in the analysis, including date, opponent, location, win/loss badge, and score from the selected team's perspective.
+- Compare scoring trends in two line charts: points scored in solid gold and points allowed in dashed blue, with game details available on hover, keyboard focus, or tap.
 - Save successful analyses automatically; search history by team name, filter by confidence, and delete entries.
 - View team logos in a dark dashboard with responsive cards and horizontally scrollable recent-game tables.
 - Receive helpful messages for invalid selections, insufficient data, missing or invalid API credentials, rate limits, and connection errors.
@@ -30,6 +31,8 @@ Point differential     = (total scored - total allowed) / games used
 ```
 
 These averages are rounded to one decimal place. The recent-games tables contain the same games used in these calculations; scores always show the analyzed team's points first, including away games.
+
+The scoring-trend charts show that same sample from oldest to newest. Both teams share the same points scale to make visual comparisons consistent. The charts are server-rendered SVGs, remain visible without JavaScript, and reuse the existing game data without additional API requests or chart-library dependencies.
 
 `utils/predictor.py` calculates the matchup score from those metrics:
 
@@ -62,8 +65,10 @@ app.py                 Flask routes, validation, and error handling
 database.py            SQLite storage, history queries, and deletion
 services/nba_api.py    API requests, caching, logos, and game aggregation
 utils/predictor.py     Matchup scoring, confidence, and explanations
+utils/charts.py        Shared chart scales and chronological scoring data
 templates/             Home, result, history, error, and base templates
 static/styles.css      Dashboard and responsive styling
+static/scoring-trends.js Game details and keyboard navigation for charts
 tests/                 Automated regression tests
 .env.example           API-key placeholder
 requirements.txt       Python dependencies
@@ -109,7 +114,8 @@ Stop the development server with `Ctrl+C`.
 
 1. On the home page, select Team A and Team B, choose 5, 10, or 15 recent games, and optionally choose which team is at home. Then click **Analyze Matchup**.
 2. On the results page, compare both teams' recent statistics, the favored team, confidence label, explanation, and the two **Recent Games Used in Analysis** tables. A `W` or `L` describes the team named above that table.
-3. Open **History** to review saved analyses. Search for a team, filter by confidence, clear the filters, or delete an entry.
+3. Use the scoring-trend charts to compare points scored and allowed across the selected games. Hover over, focus, or tap a game marker to see its full date, opponent, home/away location, result, and both scores.
+4. Open **History** to review saved analyses. Search for a team, filter by confidence, clear the filters, or delete an entry.
 
 Each successful analysis adds a new history entry. Deleting one removes it from the local SQLite database.
 
@@ -121,15 +127,16 @@ With dependencies installed, run:
 python -m unittest discover -s tests -v
 ```
 
-The tests use Python's standard-library `unittest`, mocked API responses, and temporary SQLite databases. They exercise game selection and aggregation, scoring, request validation, API error handling, and history behavior without a live API key or changes to your saved history.
+The tests use Python's standard-library `unittest`, mocked API responses, and temporary SQLite databases. They exercise game selection and aggregation, scoring, chart data and scales, request validation, API error handling, and history behavior without a live API key or changes to your saved history.
 
 For a manual smoke test with an API key:
 
 1. Analyze Lakers vs. Celtics, then another pair, with 5, 10, and 15 games and both with and without a home team.
 2. Check that home-team choices follow the selected teams and duplicate team selections are prevented.
 3. Confirm each recent-games table matches its team's record, averages, and point differential. Away-game scores should still show the selected team's points first.
-4. Open `/history`; verify the saved analysis, team search, confidence filter, clear-filters action, and deletion. Check the empty state using a fresh local database or after deleting test entries.
-5. At desktop and narrow mobile widths, check card stacking, readable text, and horizontal scrolling within the recent-game tables.
+4. Check that chart markers match the game tables, run from oldest to newest, and use the same points scale for both teams. Verify game details with mouse hover, keyboard focus, and touch; reload with JavaScript disabled to check that the charts remain visible.
+5. Open `/history`; verify the saved analysis, team search, confidence filter, clear-filters action, and deletion. Check the empty state using a fresh local database or after deleting test entries.
+6. At desktop and narrow mobile widths, check card stacking, readable chart labels and game details, and horizontal scrolling within the recent-game tables.
 
 ## Data handling and limitations
 

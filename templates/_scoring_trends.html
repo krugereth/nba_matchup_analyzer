@@ -1,0 +1,59 @@
+<section class="comparison-panel trends-panel" id="scoring-trends" aria-labelledby="trends-heading">
+    <div class="trends-header">
+        <div>
+            <h3 id="trends-heading">Scoring trends</h3>
+            <p class="helper-text">Points scored and allowed in the games used above. Both charts share the same points scale.</p>
+        </div>
+        <ul class="trend-legend" aria-label="Chart legend">
+            <li><span class="trend-swatch scored" aria-hidden="true"></span>Points scored</li>
+            <li><span class="trend-swatch allowed" aria-hidden="true"></span>Points allowed</li>
+        </ul>
+    </div>
+
+    <div class="trends-grid">
+        {% for chart in scoring_trends %}
+            {% set chart_id = loop.index %}
+            <article class="trend-card" aria-labelledby="trend-team-{{ chart_id }}">
+                <h4 id="trend-team-{{ chart_id }}">{{ chart.name }}</h4>
+                {% if chart.games %}
+                    <p class="trend-range">{{ chart.games|length }} games · {{ chart.games[0].date }} to {{ chart.games[-1].date }}</p>
+                    <p class="trend-units">Points</p>
+                    <div class="trend-plot">
+                        <svg class="trend-chart" viewBox="0 0 600 300" role="group" aria-labelledby="trend-title-{{ chart_id }}" aria-describedby="trend-description-{{ chart_id }}">
+                            <title id="trend-title-{{ chart_id }}">{{ chart.name }} scoring trends</title>
+                            <desc id="trend-description-{{ chart_id }}">Games are spaced equally, oldest to newest. The solid line shows points scored; the dashed line shows points allowed. Use the markers to inspect games. Full game details are in the tables below.</desc>
+                            {% for tick in chart.y_ticks %}
+                                <line class="trend-gridline" x1="48" x2="580" y1="{{ tick.y }}" y2="{{ tick.y }}" />
+                                <text class="trend-axis-label trend-y-tick" x="38" y="{{ tick.y }}" text-anchor="end" dominant-baseline="middle">{{ tick.value }}</text>
+                            {% endfor %}
+                            {% for tick in chart.x_ticks %}
+                                <text class="trend-axis-label" x="{{ tick.x }}" y="274" text-anchor="{{ 'start' if loop.first else 'end' if loop.last else 'middle' }}">{{ tick.label }}</text>
+                            {% endfor %}
+                            <polyline class="trend-line scored" points="{{ chart.scored_points }}" />
+                            <polyline class="trend-line allowed" points="{{ chart.allowed_points }}" />
+
+                            {% for game in chart.games %}
+                                {% set game_detail = game.date ~ ' · ' ~ game.location ~ ' vs ' ~ game.opponent ~ ' · ' ~ game.result ~ ' · Scored ' ~ game.scored ~ ' · Allowed ' ~ game.allowed %}
+                                <a class="trend-game{% if loop.last %} is-active{% endif %}" href="#recent-team-{{ chart_id }}" data-detail="{{ game_detail }}" aria-label="{{ game_detail }}. View game details." tabindex="0">
+                                    <title>{{ game_detail }}</title>
+                                    <rect class="trend-hit-area" x="{{ game.x - 14 }}" y="22" width="28" height="230" />
+                                    <line class="trend-guide" x1="{{ game.x }}" x2="{{ game.x }}" y1="24" y2="250" />
+                                    <circle class="trend-point scored" cx="{{ game.x }}" cy="{{ game.scored_y }}" r="4" />
+                                    <rect class="trend-point allowed" x="{{ game.x - 3.5 }}" y="{{ game.allowed_y - 3.5 }}" width="7" height="7" rx="1" />
+                                </a>
+                            {% endfor %}
+                        </svg>
+                    </div>
+                    <p class="trend-direction">Games, oldest to newest →</p>
+                    {% set latest = chart.games[-1] %}
+                    <p class="trend-detail" aria-live="polite" aria-atomic="true">{{ latest.date }} · {{ latest.location }} vs {{ latest.opponent }} · {{ latest.result }} · Scored {{ latest.scored }} · Allowed {{ latest.allowed }}</p>
+                    <p class="trend-interaction" hidden>Hover, focus, or tap a game marker for details.</p>
+                    <a class="trend-table-link" href="#recent-team-{{ chart_id }}">View all game details</a>
+                {% else %}
+                    <p class="helper-text">No completed games available for this chart.</p>
+                {% endif %}
+            </article>
+        {% endfor %}
+    </div>
+</section>
+<script src="{{ url_for('static', filename='scoring-trends.js') }}" defer></script>

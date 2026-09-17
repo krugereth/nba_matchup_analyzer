@@ -113,10 +113,10 @@ class AppRouteTests(unittest.TestCase):
                     text = response.get_data(as_text=True)
                     self.assertIn(team_a, text)
                     self.assertIn(team_b, text)
-                    self.assertEqual(text.count("Fixture Opponent One"), 2)
-                    self.assertEqual(text.count("Fixture Opponent Two"), 2)
-                    self.assertEqual(text.count("Fixture Opponent Three"), 2)
-                    self.assertEqual(text.count("2026-09-12"), 2)
+                    self.assertEqual(text.count("<td>Fixture Opponent One</td>"), 2)
+                    self.assertEqual(text.count("<td>Fixture Opponent Two</td>"), 2)
+                    self.assertEqual(text.count("<td>Fixture Opponent Three</td>"), 2)
+                    self.assertEqual(text.count("<td>2026-09-12</td>"), 2)
                     self.assertEqual(text.count('class="comparison-table recent-games-table"'), 2)
                     self.assertEqual(text.count('class="table-scroll"'), 2)
                     self.assertIn("110-100", text)
@@ -170,6 +170,41 @@ class AppRouteTests(unittest.TestCase):
                 self.assert_error(response, 400, "Please choose 5, 10, or 15 recent games")
         self.lookup.assert_not_called()
         self.summary.assert_not_called()
+
+    def test_trends_render_selected_sample_in_chronological_order(self):
+        def summary_for_limit(name, lookup, games_limit):
+            summary = dict(self.summaries[name])
+            summary["recent_games"] = [
+                dict(summary["recent_games"][0], date=f"2026-09-{day:02d}", scored=100 + day)
+                for day in range(15, 15 - games_limit, -1)
+            ]
+            summary["games_used"] = games_limit
+            return summary
+
+        self.summary.side_effect = summary_for_limit
+        for limit in (5, 10, 15):
+            with self.subTest(limit=limit):
+                response = self.analyze(games_limit=str(limit))
+                self.assertEqual(response.status_code, 200)
+                text = response.get_data(as_text=True)
+                context = self.rendered[-1][1]
+                self.assertEqual(text.count('class="trend-chart"'), 2)
+                self.assertEqual(text.count('data-detail='), 2 * limit)
+                for chart, team_key in zip(context["scoring_trends"], ("team_a", "team_b")):
+                    table_games = context["matchup"][team_key]["recent_games"]
+                    self.assertEqual(len(chart["games"]), limit)
+                    self.assertEqual([game["date"] for game in chart["games"]],
+                                     [game["date"] for game in reversed(table_games)])
+                    self.assertEqual([game["scored"] for game in chart["games"]],
+                                     [game["scored"] for game in reversed(table_games)])
+
+    def test_chart_game_details_escape_html(self):
+        self.summaries["Los Angeles Lakers"]["recent_games"][0]["opponent"] = '<script>alert("x")</script>'
+        response = self.analyze()
+        self.assertEqual(response.status_code, 200)
+        text = response.get_data(as_text=True)
+        self.assertNotIn('<script>alert("x")</script>', text)
+        self.assertIn('&lt;script&gt;', text)
 
     def test_missing_api_key_has_configuration_error(self):
         self.lookup.side_effect = self.web.APIConfigurationError("private diagnostic")

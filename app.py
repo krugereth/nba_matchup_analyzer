@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from database import init_db, save_matchup_result, get_recent_matchups, delete_matchup
 from services.nba_api import APIConfigurationError, get_team_lookup, build_team_summary
 from utils.predictor import build_matchup_result
+from utils.charts import build_scoring_trends
 
 
 load_dotenv()
@@ -99,10 +100,11 @@ def analyze():
         team_b_summary = build_team_summary(team_b_name, team_lookup, games_limit)
 
         matchup = build_matchup_result(team_a_summary, team_b_summary, home_team)
+        scoring_trends = build_scoring_trends(team_a_summary, team_b_summary)
 
         save_matchup_result(matchup)
 
-        return render_template("result.html", matchup=matchup)
+        return render_template("result.html", matchup=matchup, scoring_trends=scoring_trends)
 
     except APIConfigurationError:
         return render_template(
