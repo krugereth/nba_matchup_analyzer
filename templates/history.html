@@ -5,6 +5,53 @@
 {% block content %}
     <h1>Matchup History</h1>
 
+    <section class="history-dashboard" aria-labelledby="history-summary-title">
+        <h2 id="history-summary-title">Saved analysis overview</h2>
+        <p class="history-summary-note">Across all saved analyses. Search and confidence filters apply to the list below.</p>
+
+        <div class="history-stats-grid">
+            <article class="card history-stat-card">
+                <h3>Total saved analyses</h3>
+                <p class="history-stat-value" data-stat="total">{{ stats.total_matchups }}</p>
+                <p class="helper-text">Counts all saved entries, including older results.</p>
+            </article>
+
+            {% for label, leaders, count, unit in [
+                ('Most analyzed team', stats.most_analyzed_teams, stats.most_analyzed_count, 'appearance'),
+                ('Most favored team', stats.most_favored_teams, stats.most_favored_count, 'time favored')
+            ] %}
+                <article class="card history-stat-card">
+                    <h3>{{ label }}</h3>
+                    {% if leaders %}
+                        <p class="history-stat-team">{{ leaders[0] }}</p>
+                        <p class="helper-text">{{ count }} {{ ('appearance' if count == 1 else 'appearances') if unit == 'appearance' else ('time favored' if count == 1 else 'times favored') }}{% if leaders|length > 1 %} each{% endif %}</p>
+                        {% if leaders|length > 1 %}
+                            <details class="history-stat-ties">
+                                <summary>{{ leaders|length - 1 }} other {{ 'team' if leaders|length == 2 else 'teams' }} tied</summary>
+                                <ul>
+                                    {% for team in leaders[1:] %}
+                                        <li>{{ team }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </details>
+                        {% endif %}
+                    {% else %}
+                        <p class="history-stat-team">{{ 'No analyses yet' if unit == 'appearance' else 'No favored team yet' }}</p>
+                        <p class="helper-text">{{ 'Analyze a matchup to get started.' if unit == 'appearance' else 'Even matchups have no favored team.' }}</p>
+                    {% endif %}
+                </article>
+            {% endfor %}
+
+            {% for level in ['High', 'Medium', 'Low'] %}
+                <article class="card history-stat-card history-confidence-card">
+                    <h3><span class="confidence-badge {{ level|lower }}">{{ level }} confidence</span></h3>
+                    <p class="history-stat-value" data-stat="{{ level|lower }}">{{ stats.confidence_counts[level] }}</p>
+                    <p class="helper-text">Saved {{ 'analysis' if stats.confidence_counts[level] == 1 else 'analyses' }}</p>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
+
     <section class="history-filter-panel">
     <form action="/history" method="GET" class="history-filter-form">
         <div class="form-column">

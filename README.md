@@ -12,6 +12,7 @@ The project combines an interest in basketball with practice in Python, REST API
 - Inspect the actual games used in the analysis, including date, opponent, location, win/loss badge, and score from the selected team's perspective.
 - Compare scoring trends in two line charts: points scored in solid gold and points allowed in dashed blue, with game details available on hover, keyboard focus, or tap.
 - Save successful analyses automatically; search history by team name, filter by confidence, and delete entries.
+- See a history overview with the total saved analyses, most analyzed and most favored teams, and confidence counts. The overview includes all saved entries; filters apply to the result list only.
 - View team logos in a dark dashboard with responsive cards and horizontally scrollable recent-game tables.
 - Receive helpful messages for invalid selections, insufficient data, missing or invalid API credentials, rate limits, and connection errors.
 
@@ -115,9 +116,11 @@ Stop the development server with `Ctrl+C`.
 1. On the home page, select Team A and Team B, choose 5, 10, or 15 recent games, and optionally choose which team is at home. Then click **Analyze Matchup**.
 2. On the results page, compare both teams' recent statistics, the favored team, confidence label, explanation, and the two **Recent Games Used in Analysis** tables. A `W` or `L` describes the team named above that table.
 3. Use the scoring-trend charts to compare points scored and allowed across the selected games. Hover over, focus, or tap a game marker to see its full date, opponent, home/away location, result, and both scores.
-4. Open **History** to review saved analyses. Search for a team, filter by confidence, clear the filters, or delete an entry.
+4. Open **History** to review the overview and saved analyses. Search for a team, filter by confidence, clear the filters, or delete an entry. Expand a tied-team summary to see the other leaders.
 
 Each successful analysis adds a new history entry. Deleting one removes it from the local SQLite database.
+
+History statistics are calculated from the saved entries and update after a save or deletion. Team appearances count selections in either matchup position. Most-favored counts exclude `Even` results, and all teams tied for a lead are available in the overview. Confidence counts include all saved analyses, including even matchups.
 
 ## Testing
 
@@ -135,7 +138,7 @@ For a manual smoke test with an API key:
 2. Check that home-team choices follow the selected teams and duplicate team selections are prevented.
 3. Confirm each recent-games table matches its team's record, averages, and point differential. Away-game scores should still show the selected team's points first.
 4. Check that chart markers match the game tables, run from oldest to newest, and use the same points scale for both teams. Verify game details with mouse hover, keyboard focus, and touch; reload with JavaScript disabled to check that the charts remain visible.
-5. Open `/history`; verify the saved analysis, team search, confidence filter, clear-filters action, and deletion. Check the empty state using a fresh local database or after deleting test entries.
+5. Open `/history`; verify the overview, saved analysis, team search, confidence filter, clear-filters action, and deletion. The overview should remain unchanged while filtering and update after deletion. Check the empty state using a fresh local database or after deleting test entries.
 6. At desktop and narrow mobile widths, check card stacking, readable chart labels and game details, and horizontal scrolling within the recent-game tables.
 
 ## Data handling and limitations
@@ -152,6 +155,5 @@ For a manual smoke test with an API key:
 These are ideas for later development and are **not implemented yet**:
 
 - Display each component of the matchup score beside the total, making the rule-based calculation easier to inspect.
-- Add history summary statistics, such as total analyses and confidence counts.
 - Add screenshots of the home page, results, recent-games tables, and history page after the final visual review.
 - Consider deployment after planning secure API-key configuration and persistent history storage for the hosting environment.

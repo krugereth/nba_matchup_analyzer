@@ -292,6 +292,32 @@ class AppRouteTests(unittest.TestCase):
         self.assertEqual(self.rendered[-1][1]["matchups"], [])
         self.assertIn("No saved matchups match these filters", response.get_data(as_text=True))
 
+    def test_history_dashboard_handles_empty_and_tied_leaders(self):
+        response = self.client.get("/history")
+        self.assertEqual(self.rendered[-1][1]["stats"]["total_matchups"], 0)
+        self.assertIn("No favored team yet", response.get_data(as_text=True))
+        self.analyze(home_team="Los Angeles Lakers")
+        self.analyze(home_team="Boston Celtics")
+        response = self.client.get("/history")
+        stats = self.rendered[-1][1]["stats"]
+        self.assertEqual(stats["total_matchups"], 2)
+        self.assertEqual(stats["most_analyzed_teams"], ["Boston Celtics", "Los Angeles Lakers"])
+        self.assertEqual(stats["most_favored_teams"], ["Boston Celtics", "Los Angeles Lakers"])
+        self.assertEqual(response.get_data(as_text=True).count("1 other team tied"), 2)
+
+    def test_history_filters_do_not_change_overview(self):
+        self.analyze()
+        self.analyze(home_team="Los Angeles Lakers")
+        self.analyze("Toronto Raptors", "Golden State Warriors")
+        self.client.get("/history")
+        overall = self.rendered[-1][1]["stats"]
+        self.assertEqual(overall["total_matchups"], 3)
+        for query in ("team=Lakers", "confidence=High", "team=nonexistent"):
+            with self.subTest(query=query):
+                response = self.client.get("/history?" + query)
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(self.rendered[-1][1]["stats"], overall)
+
     def test_same_second_history_is_newest_first(self):
         with patch.object(database, "datetime") as frozen_datetime:
             frozen_datetime.now.return_value.strftime.return_value = "2026-09-16 12:00:00"
@@ -308,10 +334,12 @@ class AppRouteTests(unittest.TestCase):
         first, second = database.get_recent_matchups()
         response = self.client.post(f"/history/{first['id']}/delete", follow_redirects=True)
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.rendered[-1][1]["stats"]["total_matchups"], 1)
         self.assertEqual([row["id"] for row in database.get_recent_matchups()], [second["id"]])
         self.assertEqual(self.client.post("/history/999999/delete").status_code, 302)
         response = self.client.post(f"/history/{second['id']}/delete", follow_redirects=True)
         self.assertIn("No matchup history yet", response.get_data(as_text=True))
+        self.assertEqual(self.rendered[-1][1]["stats"]["total_matchups"], 0)
         self.assertEqual(database.get_recent_matchups(), [])
 
 

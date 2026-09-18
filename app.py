@@ -3,7 +3,7 @@ import requests
 from flask import Flask, render_template, request, redirect, url_for
 from dotenv import load_dotenv
 
-from database import init_db, save_matchup_result, get_recent_matchups, delete_matchup
+from database import init_db, save_matchup_result, get_recent_matchups, delete_matchup, get_history_stats
 from services.nba_api import APIConfigurationError, get_team_lookup, build_team_summary
 from utils.predictor import build_matchup_result
 from utils.charts import build_scoring_trends
@@ -189,6 +189,7 @@ def history():
     return render_template(
         "history.html",
         matchups=matchups,
+        stats=get_history_stats(),
         team_query=team_query,
         confidence_filter=confidence_filter
     )

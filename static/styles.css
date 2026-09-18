@@ -433,6 +433,85 @@ select:focus {
     gap: 18px;
 }
 
+.history-dashboard {
+    margin: 24px 0;
+}
+
+.history-dashboard h2 {
+    margin: 0 0 8px;
+    font-size: 20px;
+}
+
+.history-summary-note {
+    margin: 0 0 18px;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.history-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.history-stat-card {
+    min-width: 0;
+    padding: 20px;
+}
+
+.history-stat-card h3 {
+    margin: 0;
+    color: var(--text-soft);
+    font-size: 14px;
+}
+
+.history-stat-value {
+    margin: 14px 0 8px;
+    color: var(--gold);
+    font-size: 36px;
+    font-weight: 800;
+}
+
+.history-stat-team {
+    margin: 14px 0 10px;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.history-stat-card .helper-text {
+    line-height: 1.5;
+}
+
+.history-stat-ties {
+    margin-top: 12px;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.history-stat-ties summary {
+    color: var(--gold);
+    cursor: pointer;
+}
+
+.history-stat-ties ul {
+    margin: 8px 0 0;
+    padding-left: 18px;
+    color: var(--text-soft);
+}
+
+.history-confidence-card .history-stat-value {
+    color: var(--text-main);
+}
+
+@media (max-width: 700px) {
+    .history-stats-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
 .timestamp {
     color: var(--text-muted);
     font-size: 14px;
